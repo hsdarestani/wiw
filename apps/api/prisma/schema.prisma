@@ -13,6 +13,8 @@ model Organization {
   createdAt DateTime @default(now())
   users     User[]
   locations Location[]
+  positions Position[]
+  shifts    Shift[]
 }
 
 model User {
@@ -25,6 +27,7 @@ model User {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime @default(now())
+  shifts         Shift[]
 }
 
 model Location {
@@ -32,6 +35,44 @@ model Location {
   name           String
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
+  shifts         Shift[]
+}
+
+model Position {
+  id             String @id @default(cuid())
+  name           String
+  color          String @default("#087f73")
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  shifts         Shift[]
+}
+
+model Shift {
+  id             String      @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  locationId     String
+  location       Location    @relation(fields: [locationId], references: [id])
+  positionId     String
+  position       Position    @relation(fields: [positionId], references: [id])
+  assigneeId     String?
+  assignee       User?       @relation(fields: [assigneeId], references: [id])
+  startsAt       DateTime
+  endsAt         DateTime
+  unpaidBreakMin Int         @default(0)
+  notes          String?
+  status         ShiftStatus @default(DRAFT)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([organizationId, startsAt])
+  @@index([assigneeId, startsAt])
+}
+
+enum ShiftStatus {
+  DRAFT
+  PUBLISHED
+  OPEN
 }
 
 enum Role {

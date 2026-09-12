@@ -20,3 +20,16 @@ This repository is organized as a monorepo. Implementation starts in the `phase-
 ## Brand
 
 SchichtPro uses its own brand, interface assets and design system while implementing familiar shift-management workflows.
+
+## Phase 1: scheduling foundation
+
+The first runnable slice lives in `apps/web` and includes a responsive German
+manager shell, weekly schedule grid, employee/role rows, open shifts and weekly
+labor summaries.
+
+```bash
+corepack pnpm install
+corepack pnpm --filter @schichtpro/web dev
+```
+
+Open `http://localhost:3000/schedule`.
