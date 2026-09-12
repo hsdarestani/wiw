@@ -1,0 +1,72 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: schichtpro-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate deployment secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.HOST }}
+          DEPLOY_PASS: ${{ secrets.PASS }}
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_PASS"
+
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy SchichtPro
+        env:
+          DEPLOY_HOST: ${{ secrets.HOST }}
+          SSHPASS: ${{ secrets.PASS }}
+        run: |
+          sshpass -e ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -o ConnectTimeout=20 \
+            root@"$DEPLOY_HOST" 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          if ! command -v docker >/dev/null 2>&1; then
+            curl -fsSL https://get.docker.com | sh
+          fi
+          if ! docker compose version >/dev/null 2>&1; then
+            apt-get update
+            apt-get install -y docker-compose-plugin
+          fi
+          install -d -m 0755 /opt/schichtpro
+          if [ ! -d /opt/schichtpro/.git ]; then
+            git clone https://github.com/hsdarestani/wiw.git /opt/schichtpro
+          fi
+          cd /opt/schichtpro
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+          if [ ! -f .env ]; then
+            umask 077
+            printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 32)" > .env
+          fi
+          docker compose pull
+          docker compose up -d --build --remove-orphans
+          docker image prune -f
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1/ >/dev/null; then
+              docker compose ps
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs --tail=150
+          exit 1
+          REMOTE

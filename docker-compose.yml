@@ -1,12 +1,27 @@
 services:
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: schichtpro-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
     container_name: schichtpro-web
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
 
   postgres:
     image: postgres:16
@@ -23,3 +38,5 @@ services:
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

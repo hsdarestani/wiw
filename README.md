@@ -33,3 +33,9 @@ corepack pnpm --filter @schichtpro/web dev
 ```
 
 Open `http://localhost:3000/schedule`.
+
+## Production deployment
+
+Merges to `main` deploy automatically through GitHub Actions using the
+repository secrets `HOST` and `PASS`. The target is `/opt/schichtpro` on the
+remote host and HTTPS is managed automatically for `schichtpro.smarbiz.sbs`.
