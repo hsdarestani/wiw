@@ -1,5 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { shiftAction } from "@/api";
 import { PageHeader, shared } from "@/components";
 import { useSession } from "@/session";
 import { colors } from "@/theme";
@@ -18,7 +27,19 @@ const typeLabel: Record<string, string> = {
 };
 
 export default function Requests() {
-  const { data } = useSession();
+  const { data, refresh } = useSession();
+  const manager = ["OWNER", "ADMIN", "MANAGER"].includes(data?.user.role ?? "");
+  const review = async (tradeId: string, decision: "APPROVED" | "DECLINED") => {
+    try {
+      await shiftAction({ action: "REVIEW", tradeId, decision });
+      await refresh();
+    } catch (reason) {
+      Alert.alert(
+        "Nicht möglich",
+        reason instanceof Error ? reason.message : "Bitte versuche es erneut.",
+      );
+    }
+  };
   return (
     <SafeAreaView style={shared.safe}>
       <PageHeader
@@ -66,7 +87,56 @@ export default function Requests() {
             </View>
           </View>
         ))}
-        {!data?.requests.length ? (
+        {data?.trades.length ? (
+          <Text style={styles.tradeHeading}>
+            {manager ? "ZU GENEHMIGEN" : "SCHICHTANFRAGEN"}
+          </Text>
+        ) : null}
+        {data?.trades.map((trade) => (
+          <View key={trade.id} style={styles.tradeCard}>
+            <Text style={styles.title}>
+              {trade.kind === "OPEN_SHIFT"
+                ? "OpenShift-Anfrage"
+                : "Schichttausch"}
+            </Text>
+            <Text style={styles.dates}>
+              {new Date(trade.shift.startsAt).toLocaleString("de-DE", {
+                weekday: "short",
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              · {trade.shift.position}
+            </Text>
+            <Text style={styles.people}>
+              {trade.claimant
+                ? `Übernahme: ${trade.claimant}`
+                : "Wartet auf Teammitglied"}
+            </Text>
+            {manager && trade.status === "PENDING" ? (
+              <View style={styles.actions}>
+                <Pressable
+                  onPress={() => review(trade.id, "DECLINED")}
+                  style={styles.decline}
+                >
+                  <Text style={styles.declineText}>Ablehnen</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => review(trade.id, "APPROVED")}
+                  style={styles.accept}
+                >
+                  <Text style={styles.acceptText}>Genehmigen</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={styles.tradeStatus}>
+                {statusLabel[trade.status] ?? trade.status}
+              </Text>
+            )}
+          </View>
+        ))}
+        {!data?.requests.length && !data?.trades.length ? (
           <View style={shared.empty}>
             <Ionicons
               name="swap-horizontal-outline"
@@ -147,4 +217,49 @@ const styles = StyleSheet.create({
   },
   approved: { backgroundColor: colors.greenSoft },
   statusText: { color: colors.text, fontSize: 10, fontWeight: "700" },
+  tradeHeading: {
+    color: colors.green,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  tradeCard: {
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: "white",
+    padding: 14,
+    marginBottom: 9,
+  },
+  people: { color: colors.muted, fontSize: 12, marginTop: 8 },
+  tradeStatus: {
+    alignSelf: "flex-start",
+    color: colors.green,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 10,
+  },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: 12,
+  },
+  decline: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  declineText: { color: colors.danger, fontSize: 12, fontWeight: "700" },
+  accept: {
+    backgroundColor: colors.green,
+    borderRadius: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  acceptText: { color: "white", fontSize: 12, fontWeight: "700" },
 });

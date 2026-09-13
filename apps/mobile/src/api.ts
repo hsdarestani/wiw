@@ -19,6 +19,14 @@ export type RequestItem = {
   status: string;
   note: string | null;
 };
+export type Trade = {
+  id: string;
+  kind: "OPEN_SHIFT" | "SWAP";
+  status: "OFFERED" | "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED";
+  owner: string | null;
+  claimant: string | null;
+  shift: Shift;
+};
 export type Bootstrap = {
   user: {
     id: string;
@@ -31,6 +39,8 @@ export type Bootstrap = {
   shifts: Shift[];
   openShifts: Shift[];
   requests: RequestItem[];
+  trades: Trade[];
+  swapOffers: Array<{ id: string; owner: string | null; shift: Shift }>;
 };
 
 const API_URL =
@@ -60,6 +70,11 @@ export async function login(email: string, password: string) {
   await AsyncStorage.setItem(TOKEN_KEY, result.token);
 }
 export const bootstrap = () => call<Bootstrap>("/api/mobile/bootstrap");
+export const shiftAction = (body: Record<string, string>) =>
+  call("/api/mobile/shift-actions", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
   await AsyncStorage.removeItem(TOKEN_KEY);

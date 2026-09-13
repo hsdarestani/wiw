@@ -6,4 +6,6 @@ dist
 *.log
 *.tsbuildinfo
 .task-tmp
+.expo
+.expo-export
 .DS_Store

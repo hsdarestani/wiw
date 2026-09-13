@@ -22,9 +22,15 @@ export function PageHeader({
 export function ShiftCard({
   shift,
   open = false,
+  actionLabel,
+  onAction,
+  busy = false,
 }: {
   shift: Shift;
   open?: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
+  busy?: boolean;
 }) {
   const start = new Date(shift.startsAt);
   const end = new Date(shift.endsAt);
@@ -54,7 +60,15 @@ export function ShiftCard({
           <Text style={styles.meta}>{shift.location}</Text>
         </View>
       </View>
-      {open ? (
+      {actionLabel ? (
+        <Pressable
+          disabled={busy}
+          onPress={onAction}
+          style={[styles.action, busy && { opacity: 0.5 }]}
+        >
+          <Text style={styles.actionText}>{busy ? "…" : actionLabel}</Text>
+        </Pressable>
+      ) : open ? (
         <View style={styles.openPill}>
           <Text style={styles.openText}>Offen</Text>
         </View>
@@ -138,4 +152,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   openText: { color: colors.green, fontSize: 11, fontWeight: "700" },
+  action: {
+    borderRadius: 7,
+    backgroundColor: colors.green,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  actionText: { color: "white", fontSize: 11, fontWeight: "700" },
 });
