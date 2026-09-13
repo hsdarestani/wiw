@@ -14,10 +14,10 @@ COPY . .
 RUN pnpm --filter @schichtpro/web build
 
 FROM node:22-alpine AS runner
-WORKDIR /app
+WORKDIR /app/apps/web
 ENV NODE_ENV=production
 ENV PORT=3000
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/apps/web /app/apps/web
 EXPOSE 3000
-CMD ["node", "apps/web/server.js"]
+CMD ["sh", "-c", "../../node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/next start -p 3000"]
