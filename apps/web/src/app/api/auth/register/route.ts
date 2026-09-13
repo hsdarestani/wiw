@@ -38,6 +38,14 @@ export async function POST(request: Request) {
     await tx.location.create({
       data: { name: parsed.data.location, organizationId: organization.id },
     });
+    await tx.position.createMany({
+      data: [
+        { name: "Service", color: "#2e8dbf", organizationId: organization.id },
+        { name: "Küche", color: "#e58a2d", organizationId: organization.id },
+        { name: "Teamleitung", color: "#8068bd", organizationId: organization.id },
+        { name: "Verkauf", color: "#3a9d71", organizationId: organization.id },
+      ],
+    });
     return tx.user.create({
       data: {
         email,

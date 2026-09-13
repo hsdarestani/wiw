@@ -1,0 +1,336 @@
+"use client";
+import { ChevronLeft, ChevronRight, Plus, Send, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useMemo, useState } from "react";
+
+type Member = { id: string; name: string; hourlyRate: number };
+type Item = {
+  id: string;
+  assigneeId: string | null;
+  startsAt: string;
+  endsAt: string;
+  unpaidBreakMin: number;
+  status: string;
+  position: { name: string; color: string };
+  location: { name: string };
+};
+export function ScheduleBoard({
+  monday,
+  members,
+  locations,
+  positions,
+  shifts,
+}: {
+  monday: string;
+  members: Member[];
+  locations: { id: string; name: string }[];
+  positions: { id: string; name: string; color: string }[];
+  shifts: Item[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const days = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(monday);
+        d.setUTCDate(d.getUTCDate() + i);
+        return d;
+      }),
+    [monday],
+  );
+  const end = new Date(days[6]);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const hours = shifts.reduce(
+    (sum, s) =>
+      sum +
+      (new Date(s.endsAt).getTime() - new Date(s.startsAt).getTime()) /
+        3600000 -
+      s.unpaidBreakMin / 60,
+    0,
+  );
+  const cost = shifts.reduce(
+    (sum, s) =>
+      sum +
+      ((new Date(s.endsAt).getTime() - new Date(s.startsAt).getTime()) /
+        3600000 -
+        s.unpaidBreakMin / 60) *
+        (members.find((m) => m.id === s.assigneeId)?.hourlyRate || 0),
+    0,
+  );
+  const nav = (offset: number) => {
+    const d = new Date(monday);
+    d.setUTCDate(d.getUTCDate() + offset * 7);
+    router.push(`/schedule?week=${d.toISOString().slice(0, 10)}`);
+  };
+  async function create(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    const data = new FormData(event.currentTarget);
+    const response = await fetch("/api/shifts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        assigneeId: data.get("assigneeId") || null,
+        locationId: data.get("locationId"),
+        positionId: data.get("positionId"),
+        startsAt: new Date(String(data.get("startsAt"))).toISOString(),
+        endsAt: new Date(String(data.get("endsAt"))).toISOString(),
+        unpaidBreakMin: Number(data.get("unpaidBreakMin") || 0),
+      }),
+    });
+    const body = await response.json();
+    setLoading(false);
+    if (!response.ok) {
+      setError(body.error);
+      return;
+    }
+    setOpen(false);
+    router.refresh();
+  }
+  async function remove(id: string) {
+    if (!confirm("Diese Schicht wirklich löschen?")) return;
+    await fetch(`/api/shifts/${id}`, { method: "DELETE" });
+    router.refresh();
+  }
+  async function publish() {
+    await fetch("/api/shifts/publish", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ startsAt: monday, endsAt: end.toISOString() }),
+    });
+    router.refresh();
+  }
+  return (
+    <div className="content">
+      <div className="toolbar">
+        <div className="week-control">
+          <button onClick={() => nav(-1)}>
+            <ChevronLeft size={17} />
+          </button>
+          <span>
+            {days[0].toLocaleDateString("de-DE", {
+              day: "2-digit",
+              month: "short",
+            })}{" "}
+            –{" "}
+            {days[6].toLocaleDateString("de-DE", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
+          </span>
+          <button onClick={() => nav(1)}>
+            <ChevronRight size={17} />
+          </button>
+        </div>
+        <button className="btn" onClick={() => router.push("/schedule")}>
+          Heute
+        </button>
+        <span className="toolbar-spacer" />
+        <button className="btn" onClick={publish}>
+          <Send size={15} />
+          Veröffentlichen
+        </button>
+        <button className="btn primary" onClick={() => setOpen(true)}>
+          <Plus size={16} />
+          Schicht hinzufügen
+        </button>
+      </div>
+      <section className="stats">
+        <div className="stat">
+          <div className="stat-label">Geplante Stunden</div>
+          <div className="stat-value">{hours.toFixed(1)}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Lohnkosten</div>
+          <div className="stat-value">€ {cost.toFixed(2)}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Offene Schichten</div>
+          <div className="stat-value warning">
+            {shifts.filter((s) => s.status === "OPEN").length}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Unveröffentlicht</div>
+          <div className="stat-value">
+            {shifts.filter((s) => s.status === "DRAFT").length}
+          </div>
+        </div>
+      </section>
+      <div className="schedule-wrap">
+        <div className="schedule">
+          <div className="head">Mitarbeiter</div>
+          {days.map((day) => (
+            <div className="head" key={day.toISOString()}>
+              <div className="day-name">
+                {day.toLocaleDateString("de-DE", { weekday: "short" })}
+              </div>
+              <div className="day-date">
+                {day.toLocaleDateString("de-DE", {
+                  day: "2-digit",
+                  month: "short",
+                })}
+              </div>
+            </div>
+          ))}
+          {members.flatMap((member) => [
+            <div className="employee" key={`${member.id}-name`}>
+              <span className="avatar">
+                {member.name
+                  .split(" ")
+                  .map((x) => x[0])
+                  .join("")
+                  .slice(0, 2)}
+              </span>
+              <div>
+                <div className="employee-name">{member.name}</div>
+                <div className="employee-role">
+                  {member.hourlyRate
+                    ? `€ ${member.hourlyRate.toFixed(2)} / Std.`
+                    : "Mitarbeiter"}
+                </div>
+              </div>
+            </div>,
+            ...days.map((day) => (
+              <div className="cell" key={`${member.id}-${day.toISOString()}`}>
+                {shifts
+                  .filter(
+                    (s) =>
+                      s.assigneeId === member.id &&
+                      new Date(s.startsAt).toDateString() ===
+                        day.toDateString(),
+                  )
+                  .map((s) => (
+                    <Shift key={s.id} item={s} remove={remove} />
+                  ))}
+              </div>
+            )),
+          ])}
+          <div className="employee">
+            <div>
+              <div className="employee-name">Offene Schichten</div>
+              <div className="employee-role">Für das Team verfügbar</div>
+            </div>
+          </div>
+          {days.map((day) => (
+            <div className="cell" key={`open-${day.toISOString()}`}>
+              {shifts
+                .filter(
+                  (s) =>
+                    !s.assigneeId &&
+                    new Date(s.startsAt).toDateString() === day.toDateString(),
+                )
+                .map((s) => (
+                  <Shift key={s.id} item={s} remove={remove} />
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      {open && (
+        <div className="modal-backdrop">
+          <form className="shift-modal" onSubmit={create}>
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setOpen(false)}
+            >
+              <X size={18} />
+            </button>
+            <h2>Schicht hinzufügen</h2>
+            {error && <div className="auth-error">{error}</div>}
+            <label>
+              Mitarbeiter
+              <select name="assigneeId">
+                <option value="">Offene Schicht</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Position
+              <select name="positionId" required>
+                {positions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Standort
+              <select name="locationId" required>
+                {locations.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="modal-row">
+              <label>
+                Beginn
+                <input name="startsAt" type="datetime-local" required />
+              </label>
+              <label>
+                Ende
+                <input name="endsAt" type="datetime-local" required />
+              </label>
+            </div>
+            <label>
+              Unbezahlte Pause
+              <input
+                name="unpaidBreakMin"
+                type="number"
+                min="0"
+                max="480"
+                defaultValue="0"
+              />
+            </label>
+            <button className="auth-submit" disabled={loading}>
+              {loading ? "Wird gespeichert …" : "Schicht speichern"}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+function Shift({ item, remove }: { item: Item; remove: (id: string) => void }) {
+  const start = new Date(item.startsAt),
+    end = new Date(item.endsAt);
+  return (
+    <div
+      className="shift"
+      style={{
+        borderLeftColor: item.position.color,
+        background: `${item.position.color}18`,
+      }}
+    >
+      <button className="shift-delete" onClick={() => remove(item.id)}>
+        <Trash2 size={12} />
+      </button>
+      <div className="shift-time">
+        {start.toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}{" "}
+        –{" "}
+        {end.toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </div>
+      <div className="shift-role">
+        {item.position.name} · {item.location.name}
+      </div>
+    </div>
+  );
+}
