@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import {
+  Alert,
   RefreshControl,
   SafeAreaView,
   ScrollView,
@@ -8,6 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { shiftAction } from "@/api";
 import { PageHeader, ShiftCard, shared } from "@/components";
 import { useSession } from "@/session";
 import { colors } from "@/theme";
@@ -17,6 +19,25 @@ const dayKey = (date: Date) => date.toISOString().slice(0, 10);
 export default function ScheduleScreen() {
   const { data, refresh } = useSession();
   const [refreshing, setRefreshing] = useState(false);
+  const [busy, setBusy] = useState("");
+  const offer = async (shiftId: string) => {
+    setBusy(shiftId);
+    try {
+      await shiftAction({ action: "OFFER_SWAP", shiftId });
+      await refresh();
+      Alert.alert(
+        "Schicht angeboten",
+        "Dein Team kann die Schicht jetzt zur Übernahme anfragen.",
+      );
+    } catch (reason) {
+      Alert.alert(
+        "Nicht möglich",
+        reason instanceof Error ? reason.message : "Bitte versuche es erneut.",
+      );
+    } finally {
+      setBusy("");
+    }
+  };
   const days = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -113,7 +134,13 @@ export default function ScheduleScreen() {
                 </Text>
               </View>
               {shifts.map((shift) => (
-                <ShiftCard key={shift.id} shift={shift} />
+                <ShiftCard
+                  key={shift.id}
+                  shift={shift}
+                  actionLabel="Anbieten"
+                  busy={busy === shift.id}
+                  onAction={() => offer(shift.id)}
+                />
               ))}
             </View>
           );

@@ -8,36 +8,40 @@ datasource db {
 }
 
 model Organization {
-  id        String     @id @default(cuid())
-  name      String
-  industry  String?
-  createdAt DateTime   @default(now())
-  users     User[]
-  locations Location[]
-  invitations Invitation[]
-  positions   Position[]
-  shifts      Shift[]
-  timeOffRequests TimeOffRequest[]
+  id                String             @id @default(cuid())
+  name              String
+  industry          String?
+  createdAt         DateTime           @default(now())
+  users             User[]
+  locations         Location[]
+  invitations       Invitation[]
+  positions         Position[]
+  shifts            Shift[]
+  timeOffRequests   TimeOffRequest[]
   availabilityRules AvailabilityRule[]
+  shiftTrades       ShiftTrade[]
 }
 
 model User {
-  id             String       @id @default(cuid())
-  email          String       @unique
-  passwordHash   String
-  firstName      String
-  lastName       String
-  role           Role         @default(OWNER)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sessions       Session[]
-  shifts         Shift[]
-  hourlyRate     Decimal      @default(0) @db.Decimal(10, 2)
-  timeOffRequests TimeOffRequest[] @relation("Requester")
-  reviewedTimeOff TimeOffRequest[] @relation("Reviewer")
+  id                String             @id @default(cuid())
+  email             String             @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  role              Role               @default(OWNER)
+  organizationId    String
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions          Session[]
+  shifts            Shift[]
+  hourlyRate        Decimal            @default(0) @db.Decimal(10, 2)
+  timeOffRequests   TimeOffRequest[]   @relation("Requester")
+  reviewedTimeOff   TimeOffRequest[]   @relation("Reviewer")
   availabilityRules AvailabilityRule[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  offeredTrades     ShiftTrade[]       @relation("TradeOwner")
+  claimedTrades     ShiftTrade[]       @relation("TradeClaimant")
+  reviewedTrades    ShiftTrade[]       @relation("TradeReviewer")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model Location {
@@ -79,6 +83,7 @@ model Shift {
   status         ShiftStatus  @default(DRAFT)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  tradeRequests  ShiftTrade[]
 
   @@index([organizationId, startsAt])
   @@index([assigneeId, startsAt])
@@ -151,6 +156,29 @@ model Session {
   @@index([expiresAt])
 }
 
+model ShiftTrade {
+  id             String           @id @default(cuid())
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shiftId        String
+  shift          Shift            @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  ownerId        String?
+  owner          User?            @relation("TradeOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  claimantId     String?
+  claimant       User?            @relation("TradeClaimant", fields: [claimantId], references: [id], onDelete: SetNull)
+  reviewedById   String?
+  reviewedBy     User?            @relation("TradeReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  kind           ShiftTradeKind
+  status         ShiftTradeStatus @default(OFFERED)
+  reviewedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([organizationId, status, createdAt])
+  @@index([shiftId, status])
+  @@index([claimantId, status])
+}
+
 enum Role {
   OWNER
   ADMIN
@@ -172,6 +200,19 @@ enum TimeOffType {
 }
 
 enum RequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
+}
+
+enum ShiftTradeKind {
+  OPEN_SHIFT
+  SWAP
+}
+
+enum ShiftTradeStatus {
+  OFFERED
   PENDING
   APPROVED
   DECLINED
