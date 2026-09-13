@@ -157,6 +157,83 @@
   text-align: center;
   color: #74838d;
 }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #10243199;
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+.shift-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 9px;
+  padding: 24px;
+  box-shadow: 0 25px 70px #08151e66;
+  position: relative;
+  display: grid;
+  gap: 14px;
+}
+.shift-modal h2 {
+  margin: 0 0 5px;
+  font-size: 20px;
+}
+.shift-modal label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #526572;
+}
+.shift-modal input,
+.shift-modal select {
+  height: 42px;
+  border: 1px solid #ced8dc;
+  border-radius: 5px;
+  padding: 0 10px;
+  background: #fff;
+}
+.modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.modal-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  border: 0;
+  background: #f1f4f5;
+  color: #536872;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.shift {
+  position: relative;
+}
+.shift-delete {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  border: 0;
+  background: transparent;
+  color: #657984;
+  opacity: 0;
+  padding: 3px;
+}
+.shift:hover .shift-delete {
+  opacity: 1;
+}
+.auth-submit:disabled,
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 @media (max-width: 1000px) {
   .team-grid {
     grid-template-columns: 1fr;
