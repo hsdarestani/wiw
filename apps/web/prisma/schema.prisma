@@ -17,6 +17,7 @@ model Organization {
   invitations Invitation[]
   positions   Position[]
   shifts      Shift[]
+  timeOffRequests TimeOffRequest[]
 }
 
 model User {
@@ -31,6 +32,8 @@ model User {
   sessions       Session[]
   shifts         Shift[]
   hourlyRate     Decimal      @default(0) @db.Decimal(10, 2)
+  timeOffRequests TimeOffRequest[] @relation("Requester")
+  reviewedTimeOff TimeOffRequest[] @relation("Reviewer")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -79,6 +82,27 @@ model Shift {
   @@index([assigneeId, startsAt])
 }
 
+model TimeOffRequest {
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User          @relation("Requester", fields: [userId], references: [id], onDelete: Cascade)
+  startsOn       DateTime      @db.Date
+  endsOn         DateTime      @db.Date
+  requestType    TimeOffType
+  note           String?
+  status         RequestStatus @default(PENDING)
+  reviewedById   String?
+  reviewedBy     User?         @relation("Reviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([organizationId, status, startsOn])
+  @@index([userId, startsOn])
+}
+
 model Invitation {
   id             String       @id @default(cuid())
   code           String       @unique
@@ -119,4 +143,18 @@ enum ShiftStatus {
   DRAFT
   PUBLISHED
   OPEN
+}
+
+enum TimeOffType {
+  VACATION
+  SICK
+  UNPAID
+  OTHER
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
 }
