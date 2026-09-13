@@ -21,7 +21,7 @@ import { getCurrentUser } from "@/lib/auth";
 const links = [
   [LayoutDashboard, "Übersicht", "#"],
   [CalendarDays, "Dienstplan", "/schedule"],
-  [Clock3, "Zeiterfassung", "#"],
+  [Clock3, "Zeiterfassung", "/time-clock"],
   [Users, "Mitarbeiter", "/employees"],
   [CalendarOff, "Abwesenheiten", "/time-off"],
   [CalendarClock, "Verfügbarkeit", "/availability"],

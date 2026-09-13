@@ -36,13 +36,14 @@ export default function TabsLayout() {
         options={{ title: "OpenShifts", tabBarIcon: icon("flash") }}
       />
       <Tabs.Screen
+        name="clock"
+        options={{ title: "Stempeluhr", tabBarIcon: icon("time") }}
+      />
+      <Tabs.Screen
         name="requests"
         options={{ title: "Anfragen", tabBarIcon: icon("swap-horizontal") }}
       />
-      <Tabs.Screen
-        name="inbox"
-        options={{ title: "Postfach", tabBarIcon: icon("chatbubbles") }}
-      />
+      <Tabs.Screen name="inbox" options={{ href: null }} />
       <Tabs.Screen
         name="more"
         options={{

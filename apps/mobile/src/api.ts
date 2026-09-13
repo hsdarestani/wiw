@@ -41,6 +41,12 @@ export type Bootstrap = {
   requests: RequestItem[];
   trades: Trade[];
   swapOffers: Array<{ id: string; owner: string | null; shift: Shift }>;
+  timeEntries: Array<{
+    id: string;
+    clockIn: string;
+    clockOut: string | null;
+    source: string;
+  }>;
 };
 
 const API_URL =
@@ -74,6 +80,11 @@ export const shiftAction = (body: Record<string, string>) =>
   call("/api/mobile/shift-actions", {
     method: "POST",
     body: JSON.stringify(body),
+  });
+export const timeClockAction = (action: "CLOCK_IN" | "CLOCK_OUT") =>
+  call("/api/mobile/time-clock", {
+    method: "POST",
+    body: JSON.stringify({ action }),
   });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
