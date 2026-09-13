@@ -21,6 +21,7 @@ model Organization {
   availabilityRules AvailabilityRule[]
   shiftTrades       ShiftTrade[]
   timeEntries       TimeEntry[]
+  auditLogs         AuditLog[]
 }
 
 model User {
@@ -42,6 +43,7 @@ model User {
   claimedTrades     ShiftTrade[]       @relation("TradeClaimant")
   reviewedTrades    ShiftTrade[]       @relation("TradeReviewer")
   timeEntries       TimeEntry[]
+  auditLogs         AuditLog[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -111,6 +113,24 @@ model TimeOffRequest {
 
   @@index([organizationId, status, startsOn])
   @@index([userId, startsOn])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorId        String
+  actor          User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  entityType     String
+  entityId       String
+  action         String
+  reason         String
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
 }
 
 model AvailabilityRule {
@@ -199,6 +219,8 @@ model TimeEntry {
   reviewedAt     DateTime?
   source         TimeEntrySource
   note           String?
+  correctionNote String?
+  correctionRequestedAt DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 

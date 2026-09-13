@@ -7,9 +7,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
-import { timeClockAction } from "@/api";
+import { requestTimesheetCorrection, timeClockAction } from "@/api";
 import { PageHeader, shared } from "@/components";
 import { useSession } from "@/session";
 import { colors } from "@/theme";
@@ -36,6 +37,8 @@ export default function ClockScreen() {
   const active = data?.timeEntries.find((item) => !item.clockOut);
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
+  const [correctionId, setCorrectionId] = useState<string | null>(null);
+  const [correctionNote, setCorrectionNote] = useState("");
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -73,6 +76,26 @@ export default function ClockScreen() {
     try {
       await timeClockAction("TOGGLE_BREAK");
       await refresh();
+    } catch (reason) {
+      Alert.alert(
+        "Nicht möglich",
+        reason instanceof Error ? reason.message : "Bitte versuche es erneut.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  const submitCorrection = async () => {
+    if (!correctionId || correctionNote.trim().length < 3) {
+      return Alert.alert("Hinweis", "Bitte beschreibe die Korrektur kurz.");
+    }
+    setBusy(true);
+    try {
+      await requestTimesheetCorrection(correctionId, correctionNote.trim());
+      setCorrectionId(null);
+      setCorrectionNote("");
+      await refresh();
+      Alert.alert("Gesendet", "Deine Korrekturanfrage wurde übermittelt.");
     } catch (reason) {
       Alert.alert(
         "Nicht möglich",
@@ -150,34 +173,80 @@ export default function ClockScreen() {
           </View>
         ) : (
           data.timeEntries.map((item) => (
-            <View key={item.id} style={styles.row}>
-              <View>
-                <Text style={styles.date}>
-                  {new Date(item.clockIn).toLocaleDateString("de-DE", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "long",
-                  })}
-                </Text>
-                <Text style={styles.range}>
-                  {new Date(item.clockIn).toLocaleTimeString("de-DE", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  –{" "}
-                  {item.clockOut
-                    ? new Date(item.clockOut).toLocaleTimeString("de-DE", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : "läuft"}
-                  {` · ${item.breakMinutes} Min. Pause · ${item.approvalStatus}`}
+            <View key={item.id} style={styles.entryCard}>
+              <View style={styles.row}>
+                <View style={styles.entryCopy}>
+                  <Text style={styles.date}>
+                    {new Date(item.clockIn).toLocaleDateString("de-DE", {
+                      weekday: "long",
+                      day: "2-digit",
+                      month: "long",
+                    })}
+                  </Text>
+                  <Text style={styles.range}>
+                    {new Date(item.clockIn).toLocaleTimeString("de-DE", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {item.clockOut
+                      ? new Date(item.clockOut).toLocaleTimeString("de-DE", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "läuft"}
+                    {` · ${item.breakMinutes} Min. Pause · ${item.approvalStatus}`}
+                  </Text>
+                  {item.correctionNote ? (
+                    <Text style={styles.correctionSent}>
+                      Korrektur angefragt: {item.correctionNote}
+                    </Text>
+                  ) : null}
+                  {item.clockOut && !item.correctionNote ? (
+                    <Pressable
+                      onPress={() => {
+                        setCorrectionId(item.id);
+                        setCorrectionNote("");
+                      }}
+                    >
+                      <Text style={styles.correctionLink}>
+                        Korrektur melden
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+                <Text style={styles.hours}>
+                  {elapsed(item.clockIn, item.clockOut, now, item.breakMinutes)}{" "}
+                  Std.
                 </Text>
               </View>
-              <Text style={styles.hours}>
-                {elapsed(item.clockIn, item.clockOut, now, item.breakMinutes)}{" "}
-                Std.
-              </Text>
+              {correctionId === item.id ? (
+                <View style={styles.correctionForm}>
+                  <TextInput
+                    autoFocus
+                    multiline
+                    placeholder="Was soll korrigiert werden?"
+                    placeholderTextColor={colors.muted}
+                    value={correctionNote}
+                    onChangeText={setCorrectionNote}
+                    style={styles.correctionInput}
+                  />
+                  <View style={styles.correctionActions}>
+                    <Pressable onPress={() => setCorrectionId(null)}>
+                      <Text style={styles.cancelText}>Abbrechen</Text>
+                    </Pressable>
+                    <Pressable
+                      disabled={busy}
+                      onPress={submitCorrection}
+                      style={styles.sendButton}
+                    >
+                      <Text style={styles.sendText}>
+                        {busy ? "Senden …" : "Senden"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : null}
             </View>
           ))
         )}
@@ -260,19 +329,64 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 9,
   },
-  row: {
-    minHeight: 65,
-    padding: 13,
+  entryCard: {
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 9,
     backgroundColor: "white",
     marginBottom: 8,
+    overflow: "hidden",
+  },
+  row: {
+    minHeight: 65,
+    padding: 13,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+  entryCopy: { flex: 1, paddingRight: 10 },
   date: { color: colors.text, fontSize: 14, fontWeight: "700" },
   range: { color: colors.muted, fontSize: 12, marginTop: 4 },
   hours: { color: colors.green, fontSize: 13, fontWeight: "800" },
+  correctionLink: {
+    color: colors.green,
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 7,
+  },
+  correctionSent: {
+    color: "#A76505",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 7,
+  },
+  correctionForm: {
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    padding: 12,
+  },
+  correctionInput: {
+    minHeight: 68,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 8,
+    padding: 10,
+    color: colors.text,
+    textAlignVertical: "top",
+  },
+  correctionActions: {
+    marginTop: 9,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 18,
+  },
+  cancelText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  sendButton: {
+    backgroundColor: colors.green,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+  },
+  sendText: { color: "white", fontSize: 13, fontWeight: "800" },
 });

@@ -8,7 +8,7 @@ export default async function TimeClockPage() {
   const manager = ["OWNER", "ADMIN", "MANAGER"].includes(user.role);
   const since = new Date();
   since.setUTCDate(since.getUTCDate() - 30);
-  const [entries, activeTeam, pendingEntries] = await Promise.all([
+  const [entries, activeTeam, pendingEntries, auditLogs] = await Promise.all([
     prisma.timeEntry.findMany({
       where: { userId: user.id, clockIn: { gte: since } },
       include: { location: true },
@@ -34,6 +34,17 @@ export default async function TimeClockPage() {
           take: 100,
         })
       : [],
+    manager
+      ? prisma.auditLog.findMany({
+          where: {
+            organizationId: user.organizationId,
+            entityType: "TimeEntry",
+          },
+          include: { actor: true },
+          orderBy: { createdAt: "desc" },
+          take: 30,
+        })
+      : [],
   ]);
   const serialize = (item: {
     id: string;
@@ -43,6 +54,7 @@ export default async function TimeClockPage() {
     breakMinutes: number;
     approvalStatus: string;
     source: string;
+    correctionNote: string | null;
   }) => ({
     id: item.id,
     clockIn: item.clockIn.toISOString(),
@@ -51,6 +63,7 @@ export default async function TimeClockPage() {
     breakMinutes: item.breakMinutes,
     approvalStatus: item.approvalStatus,
     source: item.source,
+    correctionNote: item.correctionNote,
     location: null as string | null,
   });
   return (
@@ -69,6 +82,13 @@ export default async function TimeClockPage() {
       pendingEntries={pendingEntries.map((item) => ({
         ...serialize(item),
         userName: `${item.user.firstName} ${item.user.lastName}`,
+      }))}
+      auditLogs={auditLogs.map((item) => ({
+        id: item.id,
+        actorName: `${item.actor.firstName} ${item.actor.lastName}`,
+        action: item.action,
+        reason: item.reason,
+        createdAt: item.createdAt.toISOString(),
       }))}
     />
   );

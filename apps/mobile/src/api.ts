@@ -49,6 +49,7 @@ export type Bootstrap = {
     breakStartedAt: string | null;
     breakMinutes: number;
     approvalStatus: string;
+    correctionNote: string | null;
   }>;
   availability: Array<{
     id: string;
@@ -106,6 +107,11 @@ export const availabilityAction = (
   call("/api/mobile/availability", {
     method: "POST",
     body: JSON.stringify(body),
+  });
+export const requestTimesheetCorrection = (id: string, note: string) =>
+  call(`/api/mobile/timesheets/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ note }),
   });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);

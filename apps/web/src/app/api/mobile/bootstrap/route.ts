@@ -140,6 +140,7 @@ export async function GET(request: Request) {
       breakStartedAt: item.breakStartedAt?.toISOString() ?? null,
       breakMinutes: item.breakMinutes,
       approvalStatus: item.approvalStatus,
+      correctionNote: item.correctionNote,
     })),
     availability: availability.map((item) => ({
       id: item.id,
