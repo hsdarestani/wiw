@@ -20,8 +20,13 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: schichtpro-web
     restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://schichtpro:${POSTGRES_PASSWORD}@postgres:5432/schichtpro
     expose:
       - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:16
@@ -31,10 +36,13 @@ services:
       POSTGRES_DB: schichtpro
       POSTGRES_USER: schichtpro
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schichtpro -d schichtpro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:
