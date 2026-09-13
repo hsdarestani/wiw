@@ -192,6 +192,11 @@ model TimeEntry {
   location       Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
   clockIn        DateTime
   clockOut       DateTime?
+  breakStartedAt DateTime?
+  breakMinutes   Int             @default(0)
+  approvalStatus TimesheetStatus @default(PENDING)
+  reviewedById   String?
+  reviewedAt     DateTime?
   source         TimeEntrySource
   note           String?
   createdAt      DateTime        @default(now())
@@ -245,4 +250,10 @@ enum TimeEntrySource {
   WEB
   MOBILE
   MANUAL
+}
+
+enum TimesheetStatus {
+  PENDING
+  APPROVED
+  DECLINED
 }

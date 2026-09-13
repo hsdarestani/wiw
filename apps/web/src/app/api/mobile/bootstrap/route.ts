@@ -137,6 +137,9 @@ export async function GET(request: Request) {
       clockIn: item.clockIn.toISOString(),
       clockOut: item.clockOut?.toISOString() ?? null,
       source: item.source,
+      breakStartedAt: item.breakStartedAt?.toISOString() ?? null,
+      breakMinutes: item.breakMinutes,
+      approvalStatus: item.approvalStatus,
     })),
     availability: availability.map((item) => ({
       id: item.id,
