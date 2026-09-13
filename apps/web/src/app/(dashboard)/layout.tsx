@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CalendarOff,
   CalendarClock,
+  ArrowLeftRight,
   Clock3,
   LayoutDashboard,
   LogOut,
@@ -24,6 +25,7 @@ const links = [
   [Users, "Mitarbeiter", "/employees"],
   [CalendarOff, "Abwesenheiten", "/time-off"],
   [CalendarClock, "Verfügbarkeit", "/availability"],
+  [ArrowLeftRight, "Schichttausch", "/shift-trades"],
   [MessageSquare, "Nachrichten", "#"],
   [WalletCards, "Lohnabrechnung", "#"],
 ] as const;
