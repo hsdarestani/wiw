@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { assignmentConflict } from "@/lib/scheduling-policy";
 
 const updateSchema = z.object({
   assigneeId: z.string().nullable(),
@@ -50,21 +51,14 @@ export async function PATCH(
         { error: "Mitarbeiter nicht gefunden." },
         { status: 404 },
       );
-    const conflict = await prisma.shift.findFirst({
-      where: {
-        id: { not: id },
-        assigneeId: assignee.id,
-        startsAt: { lt: endsAt },
-        endsAt: { gt: startsAt },
-      },
-    });
+    const conflict = await assignmentConflict(
+      assignee.id,
+      startsAt,
+      endsAt,
+      id,
+    );
     if (conflict)
-      return NextResponse.json(
-        {
-          error: "Der Mitarbeiter hat in diesem Zeitraum bereits eine Schicht.",
-        },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: conflict }, { status: 409 });
   }
   const updated = await prisma.shift.update({
     where: { id },
