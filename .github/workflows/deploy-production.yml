@@ -61,7 +61,9 @@ jobs:
           docker compose up -d --build --remove-orphans
           docker image prune -f
           for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1/ >/dev/null; then
+            if curl -fkSs --resolve schichtpro.smarbiz.sbs:443:127.0.0.1 https://schichtpro.smarbiz.sbs/login >/dev/null; then
+              sleep 5
+              docker compose ps --status running web | grep -q schichtpro-web
               docker compose ps
               exit 0
             fi
