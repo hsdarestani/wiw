@@ -20,6 +20,7 @@ model Organization {
   timeOffRequests   TimeOffRequest[]
   availabilityRules AvailabilityRule[]
   shiftTrades       ShiftTrade[]
+  timeEntries       TimeEntry[]
 }
 
 model User {
@@ -40,6 +41,7 @@ model User {
   offeredTrades     ShiftTrade[]       @relation("TradeOwner")
   claimedTrades     ShiftTrade[]       @relation("TradeClaimant")
   reviewedTrades    ShiftTrade[]       @relation("TradeReviewer")
+  timeEntries       TimeEntry[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -52,6 +54,7 @@ model Location {
   createdAt      DateTime     @default(now())
   invitations    Invitation[]
   shifts         Shift[]
+  timeEntries    TimeEntry[]
 }
 
 model Position {
@@ -179,6 +182,25 @@ model ShiftTrade {
   @@index([claimantId, status])
 }
 
+model TimeEntry {
+  id             String          @id @default(cuid())
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId     String?
+  location       Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  clockIn        DateTime
+  clockOut       DateTime?
+  source         TimeEntrySource
+  note           String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([organizationId, clockIn])
+  @@index([userId, clockIn])
+}
+
 enum Role {
   OWNER
   ADMIN
@@ -217,4 +239,10 @@ enum ShiftTradeStatus {
   APPROVED
   DECLINED
   CANCELLED
+}
+
+enum TimeEntrySource {
+  WEB
+  MOBILE
+  MANUAL
 }

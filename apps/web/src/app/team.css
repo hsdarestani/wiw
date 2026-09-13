@@ -474,3 +474,107 @@
     justify-items: start;
   }
 }
+.clock-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(280px, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.clock-card {
+  padding: 28px;
+  border-radius: 8px;
+  color: #fff;
+  background: #17344a;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(16, 44, 63, 0.15);
+}
+.clock-card.running {
+  background: #176749;
+}
+.clock-kicker {
+  display: block;
+  color: #b9ccd8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.clock-card.running .clock-kicker {
+  color: #bce2d2;
+}
+.clock-time {
+  display: block;
+  font-size: 46px;
+  letter-spacing: -2px;
+  margin: 14px 0 5px;
+  font-variant-numeric: tabular-nums;
+}
+.clock-card p {
+  color: #d6e1e7;
+  margin: 0 0 20px;
+}
+.clock-button {
+  min-width: 180px;
+  height: 46px;
+  border: 0;
+  border-radius: 6px;
+  color: #17432f;
+  background: #fff;
+  font-weight: 800;
+}
+.clock-button.stop {
+  color: #a73838;
+}
+.clock-summary {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: center;
+}
+.clock-summary div + div {
+  border-left: 1px solid #e5eaec;
+  padding-left: 24px;
+}
+.clock-summary span {
+  display: block;
+  color: #7d8c94;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
+.clock-summary strong {
+  display: block;
+  color: #193244;
+  font-size: 26px;
+  margin-top: 9px;
+}
+.clock-team {
+  margin-bottom: 18px;
+}
+.clock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #edf1f2;
+}
+.clock-row:last-child {
+  border-bottom: 0;
+}
+.clock-row strong,
+.clock-row small {
+  display: block;
+}
+.clock-row small {
+  color: #7c8b93;
+  margin-top: 4px;
+}
+.clock-row > span {
+  color: #1c654b;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 800px) {
+  .clock-grid {
+    grid-template-columns: 1fr;
+  }
+}
