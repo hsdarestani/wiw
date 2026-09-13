@@ -215,6 +215,13 @@
 }
 .shift {
   position: relative;
+  cursor: grab;
+}
+.shift:active {
+  cursor: grabbing;
+}
+.schedule-error {
+  margin: -4px 0 14px;
 }
 .shift-delete {
   position: absolute;

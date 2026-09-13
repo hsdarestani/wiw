@@ -1,5 +1,13 @@
 "use client";
-import { ChevronLeft, ChevronRight, Plus, Send, Trash2, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 
@@ -103,6 +111,56 @@ export function ScheduleBoard({
     });
     router.refresh();
   }
+  async function copyWeek() {
+    setError("");
+    const response = await fetch("/api/shifts/copy-week", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ startsAt: monday, endsAt: end.toISOString() }),
+    });
+    const body = await response.json();
+    if (!response.ok) {
+      setError(body.error);
+      return;
+    }
+    nav(1);
+  }
+  async function moveShift(
+    shiftId: string,
+    assigneeId: string | null,
+    targetDay: Date,
+  ) {
+    const shift = shifts.find((item) => item.id === shiftId);
+    if (!shift) return;
+    setError("");
+    const oldStart = new Date(shift.startsAt),
+      oldEnd = new Date(shift.endsAt);
+    const startsAt = new Date(targetDay);
+    startsAt.setUTCHours(
+      oldStart.getUTCHours(),
+      oldStart.getUTCMinutes(),
+      0,
+      0,
+    );
+    const endsAt = new Date(
+      startsAt.getTime() + oldEnd.getTime() - oldStart.getTime(),
+    );
+    const response = await fetch(`/api/shifts/${shiftId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        assigneeId,
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok) {
+      setError(body.error);
+      return;
+    }
+    router.refresh();
+  }
   return (
     <div className="content">
       <div className="toolbar">
@@ -129,6 +187,10 @@ export function ScheduleBoard({
         <button className="btn" onClick={() => router.push("/schedule")}>
           Heute
         </button>
+        <button className="btn" onClick={copyWeek}>
+          <Copy size={15} />
+          Woche kopieren
+        </button>
         <span className="toolbar-spacer" />
         <button className="btn" onClick={publish}>
           <Send size={15} />
@@ -139,6 +201,9 @@ export function ScheduleBoard({
           Schicht hinzufügen
         </button>
       </div>
+      {error && !open && (
+        <div className="auth-error schedule-error">{error}</div>
+      )}
       <section className="stats">
         <div className="stat">
           <div className="stat-label">Geplante Stunden</div>
@@ -196,7 +261,18 @@ export function ScheduleBoard({
               </div>
             </div>,
             ...days.map((day) => (
-              <div className="cell" key={`${member.id}-${day.toISOString()}`}>
+              <div
+                className="cell"
+                key={`${member.id}-${day.toISOString()}`}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) =>
+                  moveShift(
+                    event.dataTransfer.getData("text/shift-id"),
+                    member.id,
+                    day,
+                  )
+                }
+              >
                 {shifts
                   .filter(
                     (s) =>
@@ -217,7 +293,18 @@ export function ScheduleBoard({
             </div>
           </div>
           {days.map((day) => (
-            <div className="cell" key={`open-${day.toISOString()}`}>
+            <div
+              className="cell"
+              key={`open-${day.toISOString()}`}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) =>
+                moveShift(
+                  event.dataTransfer.getData("text/shift-id"),
+                  null,
+                  day,
+                )
+              }
+            >
               {shifts
                 .filter(
                   (s) =>
@@ -308,6 +395,11 @@ function Shift({ item, remove }: { item: Item; remove: (id: string) => void }) {
     end = new Date(item.endsAt);
   return (
     <div
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData("text/shift-id", item.id);
+        event.dataTransfer.effectAllowed = "move";
+      }}
       className="shift"
       style={{
         borderLeftColor: item.position.color,
