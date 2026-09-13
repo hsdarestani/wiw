@@ -46,6 +46,9 @@ export type Bootstrap = {
     clockIn: string;
     clockOut: string | null;
     source: string;
+    breakStartedAt: string | null;
+    breakMinutes: number;
+    approvalStatus: string;
   }>;
   availability: Array<{
     id: string;
@@ -88,7 +91,9 @@ export const shiftAction = (body: Record<string, string>) =>
     method: "POST",
     body: JSON.stringify(body),
   });
-export const timeClockAction = (action: "CLOCK_IN" | "CLOCK_OUT") =>
+export const timeClockAction = (
+  action: "CLOCK_IN" | "CLOCK_OUT" | "TOGGLE_BREAK",
+) =>
   call("/api/mobile/time-clock", {
     method: "POST",
     body: JSON.stringify({ action }),

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getMobileUser } from "@/lib/mobile-auth";
-import { clockIn, clockOut } from "@/lib/time-clock";
+import { clockIn, clockOut, toggleBreak } from "@/lib/time-clock";
 
-const schema = z.object({ action: z.enum(["CLOCK_IN", "CLOCK_OUT"]) });
+const schema = z.object({
+  action: z.enum(["CLOCK_IN", "CLOCK_OUT", "TOGGLE_BREAK"]),
+});
 export async function POST(request: Request) {
   const user = await getMobileUser(request);
   if (!user)
@@ -14,7 +16,9 @@ export async function POST(request: Request) {
   const result =
     parsed.data.action === "CLOCK_IN"
       ? await clockIn(user, "MOBILE")
-      : await clockOut(user);
+      : parsed.data.action === "CLOCK_OUT"
+        ? await clockOut(user)
+        : await toggleBreak(user);
   if ("error" in result)
     return NextResponse.json(
       { error: result.error },

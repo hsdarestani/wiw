@@ -1,0 +1,6 @@
+CREATE TYPE "TimesheetStatus" AS ENUM ('PENDING', 'APPROVED', 'DECLINED');
+ALTER TABLE "TimeEntry" ADD COLUMN "breakStartedAt" TIMESTAMP(3),
+ADD COLUMN "breakMinutes" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "approvalStatus" "TimesheetStatus" NOT NULL DEFAULT 'PENDING',
+ADD COLUMN "reviewedById" TEXT,
+ADD COLUMN "reviewedAt" TIMESTAMP(3);

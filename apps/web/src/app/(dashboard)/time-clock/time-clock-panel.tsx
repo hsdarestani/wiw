@@ -8,15 +8,27 @@ type Entry = {
   clockOut: string | null;
   source: string;
   location: string | null;
+  breakStartedAt: string | null;
+  breakMinutes: number;
+  approvalStatus: string;
 };
 type Active = {
   id: string;
   name: string;
   clockIn: string;
   location: string | null;
+  breakStartedAt: string | null;
 };
-const duration = (start: string, end: string | null, now = Date.now()) => {
-  const ms = (end ? new Date(end).getTime() : now) - new Date(start).getTime();
+const duration = (
+  start: string,
+  end: string | null,
+  now = Date.now(),
+  breakMinutes = 0,
+) => {
+  const ms =
+    (end ? new Date(end).getTime() : now) -
+    new Date(start).getTime() -
+    breakMinutes * 60000;
   const total = Math.max(0, Math.floor(ms / 60000));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 };
@@ -24,9 +36,11 @@ const duration = (start: string, end: string | null, now = Date.now()) => {
 export function TimeClockPanel({
   entries,
   activeTeam,
+  pendingEntries,
 }: {
   entries: Entry[];
   activeTeam: Active[];
+  pendingEntries: Array<Entry & { userName: string }>;
 }) {
   const router = useRouter();
   const active = entries.find((item) => !item.clockOut);
@@ -44,22 +58,36 @@ export function TimeClockPanel({
           sum +
           (item.clockOut
             ? new Date(item.clockOut).getTime() -
-              new Date(item.clockIn).getTime()
+              new Date(item.clockIn).getTime() -
+              item.breakMinutes * 60000
             : 0),
         0,
       ) / 3600000,
     [entries],
   );
-  async function toggle() {
+  async function toggle(action?: "TOGGLE_BREAK") {
     setBusy(true);
     setError("");
     const response = await fetch("/api/time-clock", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: active ? "CLOCK_OUT" : "CLOCK_IN" }),
+      body: JSON.stringify({
+        action: action ?? (active ? "CLOCK_OUT" : "CLOCK_IN"),
+      }),
     });
     const body = await response.json();
     setBusy(false);
+    if (!response.ok) return setError(body.error);
+    router.refresh();
+  }
+  async function review(id: string, status: "APPROVED" | "DECLINED") {
+    setError("");
+    const response = await fetch(`/api/timesheets/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    const body = await response.json();
     if (!response.ok) return setError(body.error);
     router.refresh();
   }
@@ -94,10 +122,19 @@ export function TimeClockPanel({
           <button
             className={`clock-button ${active ? "stop" : ""}`}
             disabled={busy}
-            onClick={toggle}
+            onClick={() => toggle()}
           >
             {busy ? "Bitte warten …" : active ? "Ausstempeln" : "Einstempeln"}
           </button>
+          {active && (
+            <button
+              className="break-button"
+              disabled={busy}
+              onClick={() => toggle("TOGGLE_BREAK")}
+            >
+              {active.breakStartedAt ? "Pause beenden" : "Pause starten"}
+            </button>
+          )}
         </section>
         <section className="panel clock-summary">
           <div>
@@ -122,7 +159,11 @@ export function TimeClockPanel({
                 <strong>{item.name}</strong>
                 <small>{item.location ?? "Kein Standort"}</small>
               </div>
-              <span>{duration(item.clockIn, null, now)} Std.</span>
+              <span>
+                {item.breakStartedAt
+                  ? "In Pause"
+                  : `${duration(item.clockIn, null, now)} Std.`}
+              </span>
             </div>
           ))}
         </section>
@@ -159,11 +200,47 @@ export function TimeClockPanel({
                   · {item.source}
                 </small>
               </div>
-              <span>{duration(item.clockIn, item.clockOut, now)} Std.</span>
+              <span>
+                {duration(item.clockIn, item.clockOut, now, item.breakMinutes)}{" "}
+                · {item.breakMinutes} Min. Pause · {item.approvalStatus}
+              </span>
             </div>
           ))
         )}
       </section>
+      {pendingEntries.length > 0 && (
+        <section className="panel timesheet-review">
+          <div className="panel-head">
+            <h2>Zeiten zur Freigabe</h2>
+            <span>{pendingEntries.length} offen</span>
+          </div>
+          {pendingEntries.map((item) => (
+            <div className="clock-row" key={item.id}>
+              <div>
+                <strong>{item.userName}</strong>
+                <small>
+                  {new Date(item.clockIn).toLocaleString("de-DE")} ·{" "}
+                  {item.breakMinutes} Min. Pause
+                </small>
+              </div>
+              <div className="request-actions">
+                <button
+                  className="btn approve"
+                  onClick={() => review(item.id, "APPROVED")}
+                >
+                  Genehmigen
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => review(item.id, "DECLINED")}
+                >
+                  Ablehnen
+                </button>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

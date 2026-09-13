@@ -14,11 +14,18 @@ import { PageHeader, shared } from "@/components";
 import { useSession } from "@/session";
 import { colors } from "@/theme";
 
-const elapsed = (start: string, end: string | null, now: number) => {
+const elapsed = (
+  start: string,
+  end: string | null,
+  now: number,
+  breakMinutes = 0,
+) => {
   const minutes = Math.max(
     0,
     Math.floor(
-      ((end ? new Date(end).getTime() : now) - new Date(start).getTime()) /
+      ((end ? new Date(end).getTime() : now) -
+        new Date(start).getTime() -
+        breakMinutes * 60000) /
         60000,
     ),
   );
@@ -40,7 +47,8 @@ export default function ClockScreen() {
           sum +
           (item.clockOut
             ? new Date(item.clockOut).getTime() -
-              new Date(item.clockIn).getTime()
+              new Date(item.clockIn).getTime() -
+              item.breakMinutes * 60000
             : 0),
         0,
       ) ?? 0,
@@ -50,6 +58,20 @@ export default function ClockScreen() {
     setBusy(true);
     try {
       await timeClockAction(active ? "CLOCK_OUT" : "CLOCK_IN");
+      await refresh();
+    } catch (reason) {
+      Alert.alert(
+        "Nicht möglich",
+        reason instanceof Error ? reason.message : "Bitte versuche es erneut.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  const breakToggle = async () => {
+    setBusy(true);
+    try {
+      await timeClockAction("TOGGLE_BREAK");
       await refresh();
     } catch (reason) {
       Alert.alert(
@@ -94,6 +116,17 @@ export default function ClockScreen() {
               {busy ? "Bitte warten …" : active ? "Ausstempeln" : "Einstempeln"}
             </Text>
           </Pressable>
+          {active ? (
+            <Pressable
+              disabled={busy}
+              onPress={breakToggle}
+              style={styles.breakButton}
+            >
+              <Text style={styles.breakText}>
+                {active.breakStartedAt ? "Pause beenden" : "Pause starten"}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
         <View style={styles.summary}>
           <View>
@@ -138,10 +171,12 @@ export default function ClockScreen() {
                         minute: "2-digit",
                       })
                     : "läuft"}
+                  {` · ${item.breakMinutes} Min. Pause · ${item.approvalStatus}`}
                 </Text>
               </View>
               <Text style={styles.hours}>
-                {elapsed(item.clockIn, item.clockOut, now)} Std.
+                {elapsed(item.clockIn, item.clockOut, now, item.breakMinutes)}{" "}
+                Std.
               </Text>
             </View>
           ))
@@ -186,6 +221,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonText: { color: colors.green, fontSize: 15, fontWeight: "800" },
+  breakButton: {
+    marginTop: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: "#C5D7DF",
+    borderRadius: 18,
+  },
+  breakText: { color: "white", fontSize: 12, fontWeight: "700" },
   summary: {
     flexDirection: "row",
     justifyContent: "space-around",

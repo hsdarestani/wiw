@@ -43,9 +43,50 @@ export async function clockOut(user: ClockUser) {
       error: "Du bist derzeit nicht eingestempelt.",
       status: 409,
     } as const;
+  const extraBreak = entry.breakStartedAt
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - entry.breakStartedAt.getTime()) / 60000),
+      )
+    : 0;
   const updated = await prisma.timeEntry.update({
     where: { id: entry.id },
-    data: { clockOut: new Date() },
+    data: {
+      clockOut: new Date(),
+      breakStartedAt: null,
+      breakMinutes: { increment: extraBreak },
+    },
+  });
+  return { entry: updated } as const;
+}
+
+export async function toggleBreak(user: ClockUser) {
+  const entry = await prisma.timeEntry.findFirst({
+    where: {
+      userId: user.id,
+      organizationId: user.organizationId,
+      clockOut: null,
+    },
+  });
+  if (!entry)
+    return {
+      error: "Du bist derzeit nicht eingestempelt.",
+      status: 409,
+    } as const;
+  if (!entry.breakStartedAt) {
+    const updated = await prisma.timeEntry.update({
+      where: { id: entry.id },
+      data: { breakStartedAt: new Date() },
+    });
+    return { entry: updated } as const;
+  }
+  const minutes = Math.max(
+    1,
+    Math.floor((Date.now() - entry.breakStartedAt.getTime()) / 60000),
+  );
+  const updated = await prisma.timeEntry.update({
+    where: { id: entry.id },
+    data: { breakStartedAt: null, breakMinutes: { increment: minutes } },
   });
   return { entry: updated } as const;
 }
