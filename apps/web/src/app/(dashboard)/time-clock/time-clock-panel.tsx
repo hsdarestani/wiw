@@ -11,6 +11,7 @@ type Entry = {
   breakStartedAt: string | null;
   breakMinutes: number;
   approvalStatus: string;
+  correctionNote: string | null;
 };
 type Active = {
   id: string;
@@ -37,10 +38,18 @@ export function TimeClockPanel({
   entries,
   activeTeam,
   pendingEntries,
+  auditLogs,
 }: {
   entries: Entry[];
   activeTeam: Active[];
   pendingEntries: Array<Entry & { userName: string }>;
+  auditLogs: Array<{
+    id: string;
+    actorName: string;
+    action: string;
+    reason: string;
+    createdAt: string;
+  }>;
 }) {
   const router = useRouter();
   const active = entries.find((item) => !item.clockOut);
@@ -85,7 +94,34 @@ export function TimeClockPanel({
     const response = await fetch(`/api/timesheets/${id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ action: "REVIEW", status }),
+    });
+    const body = await response.json();
+    if (!response.ok) return setError(body.error);
+    router.refresh();
+  }
+  async function edit(item: Entry) {
+    const clockIn = window.prompt("Beginn (ISO-Zeit)", item.clockIn);
+    const clockOut = window.prompt("Ende (ISO-Zeit)", item.clockOut ?? "");
+    const breakValue = window.prompt(
+      "Pause in Minuten",
+      String(item.breakMinutes),
+    );
+    const reason = window.prompt(
+      "Grund der Korrektur (Pflichtfeld)",
+      item.correctionNote ?? "",
+    );
+    if (!clockIn || !clockOut || breakValue === null || !reason) return;
+    const response = await fetch(`/api/timesheets/${item.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "EDIT",
+        clockIn: new Date(clockIn).toISOString(),
+        clockOut: new Date(clockOut).toISOString(),
+        breakMinutes: Number(breakValue),
+        reason,
+      }),
     });
     const body = await response.json();
     if (!response.ok) return setError(body.error);
@@ -221,9 +257,15 @@ export function TimeClockPanel({
                 <small>
                   {new Date(item.clockIn).toLocaleString("de-DE")} ·{" "}
                   {item.breakMinutes} Min. Pause
+                  {item.correctionNote
+                    ? ` · Korrektur: ${item.correctionNote}`
+                    : ""}
                 </small>
               </div>
               <div className="request-actions">
+                <button className="btn" onClick={() => edit(item)}>
+                  Bearbeiten
+                </button>
                 <button
                   className="btn approve"
                   onClick={() => review(item.id, "APPROVED")}
@@ -237,6 +279,31 @@ export function TimeClockPanel({
                   Ablehnen
                 </button>
               </div>
+            </div>
+          ))}
+        </section>
+      )}
+      {auditLogs.length > 0 && (
+        <section className="panel">
+          <div className="panel-head">
+            <h2>Änderungsprotokoll</h2>
+            <span>unveränderbar dokumentiert</span>
+          </div>
+          {auditLogs.map((item) => (
+            <div className="clock-row" key={item.id}>
+              <div>
+                <strong>
+                  {item.action === "EDIT"
+                    ? "Zeiteintrag korrigiert"
+                    : item.action === "REQUEST_CORRECTION"
+                      ? "Korrektur angefragt"
+                      : "Zeiteintrag geprüft"}
+                </strong>
+                <small>
+                  {item.actorName} · {item.reason}
+                </small>
+              </div>
+              <span>{new Date(item.createdAt).toLocaleString("de-DE")}</span>
             </div>
           ))}
         </section>
