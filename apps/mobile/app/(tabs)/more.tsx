@@ -12,12 +12,12 @@ import { PageHeader, shared } from "@/components";
 import { useSession } from "@/session";
 import { colors } from "@/theme";
 
-const rows: Array<[keyof typeof Ionicons.glyphMap, string]> = [
-  ["time-outline", "Zeiterfassung"],
-  ["calendar-number-outline", "Verfügbarkeit"],
-  ["people-outline", "Team"],
-  ["settings-outline", "Einstellungen"],
-  ["help-circle-outline", "Hilfe & Support"],
+const rows: Array<[keyof typeof Ionicons.glyphMap, string, string | null]> = [
+  ["calendar-outline", "Abwesenheiten", "/time-off"],
+  ["calendar-number-outline", "Verfügbarkeit", "/availability"],
+  ["people-outline", "Team", null],
+  ["settings-outline", "Einstellungen", null],
+  ["help-circle-outline", "Hilfe & Support", null],
 ];
 export default function More() {
   const { data, signOut } = useSession();
@@ -38,8 +38,12 @@ export default function More() {
           </View>
         </View>
         <View style={styles.menu}>
-          {rows.map(([icon, label]) => (
-            <Pressable key={label} style={styles.row}>
+          {rows.map(([icon, label, href]) => (
+            <Pressable
+              key={label}
+              style={styles.row}
+              onPress={() => href && router.push(href as never)}
+            >
               <Ionicons name={icon} size={21} color={colors.navy} />
               <Text style={styles.label}>{label}</Text>
               <Ionicons name="chevron-forward" size={18} color="#9AA8B2" />
