@@ -20,4 +20,4 @@ ENV PORT=3000
 COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/apps/web /app/apps/web
 EXPOSE 3000
-CMD ["sh", "-c", "../../node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/next start -p 3000"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/next start -p 3000"]
