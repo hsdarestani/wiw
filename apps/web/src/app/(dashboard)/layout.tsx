@@ -1,6 +1,7 @@
 import {
   Bell,
   CalendarDays,
+  CalendarOff,
   Clock3,
   LayoutDashboard,
   LogOut,
@@ -20,6 +21,7 @@ const links = [
   [CalendarDays, "Dienstplan", "/schedule"],
   [Clock3, "Zeiterfassung", "#"],
   [Users, "Mitarbeiter", "/employees"],
+  [CalendarOff, "Abwesenheiten", "/time-off"],
   [MessageSquare, "Nachrichten", "#"],
   [WalletCards, "Lohnabrechnung", "#"],
 ] as const;
