@@ -47,6 +47,13 @@ export type Bootstrap = {
     clockOut: string | null;
     source: string;
   }>;
+  availability: Array<{
+    id: string;
+    weekday: number;
+    startMinute: number;
+    endMinute: number;
+    available: boolean;
+  }>;
 };
 
 const API_URL =
@@ -85,6 +92,15 @@ export const timeClockAction = (action: "CLOCK_IN" | "CLOCK_OUT") =>
   call("/api/mobile/time-clock", {
     method: "POST",
     body: JSON.stringify({ action }),
+  });
+export const timeOffAction = (body: Record<string, string>) =>
+  call("/api/mobile/time-off", { method: "POST", body: JSON.stringify(body) });
+export const availabilityAction = (
+  body: Record<string, string | number | boolean>,
+) =>
+  call("/api/mobile/availability", {
+    method: "POST",
+    body: JSON.stringify(body),
   });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
