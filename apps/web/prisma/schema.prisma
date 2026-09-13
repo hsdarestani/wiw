@@ -14,6 +14,7 @@ model Organization {
   createdAt DateTime   @default(now())
   users     User[]
   locations Location[]
+  invitations Invitation[]
 }
 
 model User {
@@ -36,6 +37,24 @@ model Location {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
+  invitations    Invitation[]
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  email          String?
+  role           Role         @default(EMPLOYEE)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  locationId     String?
+  location       Location?    @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([email])
 }
 
 model Session {

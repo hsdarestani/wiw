@@ -1,0 +1,170 @@
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.page-heading h1 {
+  font-size: 24px;
+  margin: 0 0 5px;
+  color: #213846;
+}
+.page-heading p {
+  margin: 0;
+  color: #72818b;
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 18px;
+}
+.panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-head h2,
+.invite-form h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.search-input {
+  margin-left: auto;
+  width: 210px;
+  height: 35px;
+  border: 1px solid #ced8dc;
+  border-radius: 5px;
+  padding: 0 10px;
+}
+.member-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.8fr 0.7fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #edf1f2;
+}
+.member-row:last-child {
+  border-bottom: 0;
+}
+.member {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.member strong {
+  display: block;
+}
+.member small {
+  color: #75848d;
+  display: block;
+  margin-top: 3px;
+}
+.role-pill {
+  width: max-content;
+  background: #edf5f4;
+  color: #246a63;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.status-active {
+  color: #27845b;
+  font-weight: 700;
+  font-size: 12px;
+}
+.invite-form {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 18px;
+  height: max-content;
+}
+.invite-form > div:first-child p {
+  color: #73838d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.form-row {
+  display: grid;
+  gap: 13px;
+  margin-top: 17px;
+}
+.form-row label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #526572;
+}
+.form-row input,
+.form-row select {
+  height: 40px;
+  border: 1px solid #ced8dc;
+  border-radius: 5px;
+  padding: 0 10px;
+  background: #fff;
+}
+.form-row .btn {
+  margin-top: 4px;
+  justify-content: center;
+}
+.invite-code {
+  border: 1px solid #9cd3c9;
+  background: #effaf8;
+  border-radius: 6px;
+  padding: 13px;
+  margin-top: 14px;
+}
+.invite-code span {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #548177;
+  display: block;
+}
+.invite-code strong {
+  display: block;
+  font-size: 20px;
+  letter-spacing: 0.09em;
+  margin-top: 5px;
+  color: #176f65;
+}
+.invite-list {
+  margin-top: 18px;
+}
+.invite-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid #edf1f2;
+}
+.invite-item:last-child {
+  border-bottom: 0;
+}
+.invite-item small {
+  color: #7b8991;
+}
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: #74838d;
+}
+@media (max-width: 1000px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  .member-row {
+    grid-template-columns: 1.4fr 1fr 0.7fr;
+  }
+  .member-row > span:nth-child(3) {
+    display: none;
+  }
+}

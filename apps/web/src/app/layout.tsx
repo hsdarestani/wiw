@@ -1,5 +1,6 @@
 import './globals.css';
 import './auth.css';
+import './team.css';
 
 export const metadata = {
   title: 'SchichtPro',

@@ -1,12 +1,226 @@
-'use client';
-import Link from 'next/link';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-type FormState={name:string;email:string;password:string;company:string;location:string;industry:string};
-export default function SignupPage(){
- const router=useRouter();const [step,setStep]=useState(1);const [kind,setKind]=useState<'manager'|'employee'>('manager');const [form,setForm]=useState<FormState>({name:'',email:'',password:'',company:'',location:'',industry:''});const [error,setError]=useState('');const [loading,setLoading]=useState(false);
- const update=(key:keyof FormState,value:string)=>setForm(current=>({...current,[key]:value}));
- async function register(){setError('');setLoading(true);const response=await fetch('/api/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(form)});const body=await response.json();setLoading(false);if(!response.ok){setError(body.error);return}router.push('/schedule');router.refresh()}
- return <div className="auth-page"><section className="auth-panel"><Link href="/" className="auth-brand"><span>S</span>SchichtPro</Link><div className="auth-form-wrap"><div className="steps"><i className="step active"/><i className={`step ${step>1?'active':''}`}/><i className={`step ${step>2?'active':''}`}/></div>{error&&<div className="auth-error">{error}</div>}{step===1&&<><h1>Wie möchtest du starten?</h1><p className="auth-subtitle">Wähle aus, wie du SchichtPro nutzen möchtest.</p><div className="choice-grid"><button className={`choice ${kind==='manager'?'selected':''}`} onClick={()=>setKind('manager')}><strong>Ich plane ein Team</strong><small>Dienstpläne erstellen, Zeiten prüfen und Mitarbeitende verwalten.</small></button><button className={`choice ${kind==='employee'?'selected':''}`} onClick={()=>setKind('employee')}><strong>Ich bin Mitarbeiter</strong><small>Mit Einladung einem bestehenden Arbeitsplatz beitreten.</small></button></div><button className="auth-submit" onClick={()=>kind==='manager'?setStep(2):setError('Der Beitritt per Einladung folgt im nächsten Modul.')}>Weiter</button></>}{step===2&&<><h1>Konto erstellen</h1><p className="auth-subtitle">Nur noch ein paar Angaben bis zu deinem Arbeitsbereich.</p><div className="field"><label>Vor- und Nachname</label><input value={form.name} onChange={e=>update('name',e.target.value)} placeholder="Anna Müller" required/></div><div className="field"><label>E-Mail-Adresse</label><input value={form.email} onChange={e=>update('email',e.target.value)} type="email" placeholder="anna@unternehmen.de" required/></div><div className="field"><label>Passwort</label><input value={form.password} onChange={e=>update('password',e.target.value)} type="password" minLength={8} placeholder="Mindestens 8 Zeichen" required/></div><button className="auth-submit" onClick={()=>form.name&&form.email&&form.password.length>=8?setStep(3):setError('Bitte fülle alle Pflichtfelder korrekt aus.')}>Weiter</button></>}{step===3&&<><h1>Arbeitsplatz einrichten</h1><p className="auth-subtitle">Diese Angaben kannst du später jederzeit ändern.</p><div className="field"><label>Name des Unternehmens</label><input value={form.company} onChange={e=>update('company',e.target.value)} placeholder="Beispiel GmbH"/></div><div className="field"><label>Erster Standort</label><input value={form.location} onChange={e=>update('location',e.target.value)} placeholder="Hauptfiliale"/></div><div className="field"><label>Branche</label><select value={form.industry} onChange={e=>update('industry',e.target.value)}><option value="">Branche auswählen</option><option>Gastronomie</option><option>Einzelhandel</option><option>Gesundheit</option><option>Dienstleistung</option></select></div><button className="auth-submit" disabled={loading} onClick={register}>{loading?'Arbeitsbereich wird erstellt …':'Arbeitsbereich öffnen'}</button></>}<p className="auth-switch">Bereits registriert? <Link href="/login">Anmelden</Link></p></div></section><aside className="auth-visual"><div className="visual-content"><h2>Arbeitszeit, die für alle funktioniert.</h2><p>Plane Schichten, teile Änderungen sofort mit und gib deinem Team alle wichtigen Informationen an einem Ort.</p><div className="preview-card"><div className="preview-title"><span>Heute im Einsatz</span><span>4 Mitarbeitende</span></div><div style={{display:'grid',gap:10,marginTop:14}}>{['Sophie · 09:00–17:00','Lukas · 10:00–18:00','Mia · 12:00–20:00'].map(x=><div className="mini-shift" key={x}>{x}</div>)}</div></div></div></aside></div>
+type FormState = {
+  name: string;
+  email: string;
+  password: string;
+  company: string;
+  location: string;
+  industry: string;
+};
+export default function SignupPage() {
+  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [kind, setKind] = useState<"manager" | "employee">("manager");
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    email: "",
+    password: "",
+    company: "",
+    location: "",
+    industry: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const update = (key: keyof FormState, value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
+  async function register() {
+    setError("");
+    setLoading(true);
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const body = await response.json();
+    setLoading(false);
+    if (!response.ok) {
+      setError(body.error);
+      return;
+    }
+    router.push("/schedule");
+    router.refresh();
+  }
+  return (
+    <div className="auth-page">
+      <section className="auth-panel">
+        <Link href="/" className="auth-brand">
+          <span>S</span>SchichtPro
+        </Link>
+        <div className="auth-form-wrap">
+          <div className="steps">
+            <i className="step active" />
+            <i className={`step ${step > 1 ? "active" : ""}`} />
+            <i className={`step ${step > 2 ? "active" : ""}`} />
+          </div>
+          {error && <div className="auth-error">{error}</div>}
+          {step === 1 && (
+            <>
+              <h1>Wie möchtest du starten?</h1>
+              <p className="auth-subtitle">
+                Wähle aus, wie du SchichtPro nutzen möchtest.
+              </p>
+              <div className="choice-grid">
+                <button
+                  className={`choice ${kind === "manager" ? "selected" : ""}`}
+                  onClick={() => setKind("manager")}
+                >
+                  <strong>Ich plane ein Team</strong>
+                  <small>
+                    Dienstpläne erstellen, Zeiten prüfen und Mitarbeitende
+                    verwalten.
+                  </small>
+                </button>
+                <button
+                  className={`choice ${kind === "employee" ? "selected" : ""}`}
+                  onClick={() => setKind("employee")}
+                >
+                  <strong>Ich bin Mitarbeiter</strong>
+                  <small>
+                    Mit Einladung einem bestehenden Arbeitsplatz beitreten.
+                  </small>
+                </button>
+              </div>
+              <button
+                className="auth-submit"
+                onClick={() =>
+                  kind === "manager"
+                    ? setStep(2)
+                    : router.push("/join")
+                }
+              >
+                Weiter
+              </button>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <h1>Konto erstellen</h1>
+              <p className="auth-subtitle">
+                Nur noch ein paar Angaben bis zu deinem Arbeitsbereich.
+              </p>
+              <div className="field">
+                <label>Vor- und Nachname</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => update("name", e.target.value)}
+                  placeholder="Anna Müller"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label>E-Mail-Adresse</label>
+                <input
+                  value={form.email}
+                  onChange={(e) => update("email", e.target.value)}
+                  type="email"
+                  placeholder="anna@unternehmen.de"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label>Passwort</label>
+                <input
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                  type="password"
+                  minLength={8}
+                  placeholder="Mindestens 8 Zeichen"
+                  required
+                />
+              </div>
+              <button
+                className="auth-submit"
+                onClick={() =>
+                  form.name && form.email && form.password.length >= 8
+                    ? setStep(3)
+                    : setError("Bitte fülle alle Pflichtfelder korrekt aus.")
+                }
+              >
+                Weiter
+              </button>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <h1>Arbeitsplatz einrichten</h1>
+              <p className="auth-subtitle">
+                Diese Angaben kannst du später jederzeit ändern.
+              </p>
+              <div className="field">
+                <label>Name des Unternehmens</label>
+                <input
+                  value={form.company}
+                  onChange={(e) => update("company", e.target.value)}
+                  placeholder="Beispiel GmbH"
+                />
+              </div>
+              <div className="field">
+                <label>Erster Standort</label>
+                <input
+                  value={form.location}
+                  onChange={(e) => update("location", e.target.value)}
+                  placeholder="Hauptfiliale"
+                />
+              </div>
+              <div className="field">
+                <label>Branche</label>
+                <select
+                  value={form.industry}
+                  onChange={(e) => update("industry", e.target.value)}
+                >
+                  <option value="">Branche auswählen</option>
+                  <option>Gastronomie</option>
+                  <option>Einzelhandel</option>
+                  <option>Gesundheit</option>
+                  <option>Dienstleistung</option>
+                </select>
+              </div>
+              <button
+                className="auth-submit"
+                disabled={loading}
+                onClick={register}
+              >
+                {loading
+                  ? "Arbeitsbereich wird erstellt …"
+                  : "Arbeitsbereich öffnen"}
+              </button>
+            </>
+          )}
+          <p className="auth-switch">
+            Bereits registriert? <Link href="/login">Anmelden</Link>
+          </p>
+        </div>
+      </section>
+      <aside className="auth-visual">
+        <div className="visual-content">
+          <h2>Arbeitszeit, die für alle funktioniert.</h2>
+          <p>
+            Plane Schichten, teile Änderungen sofort mit und gib deinem Team
+            alle wichtigen Informationen an einem Ort.
+          </p>
+          <div className="preview-card">
+            <div className="preview-title">
+              <span>Heute im Einsatz</span>
+              <span>4 Mitarbeitende</span>
+            </div>
+            <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+              {[
+                "Sophie · 09:00–17:00",
+                "Lukas · 10:00–18:00",
+                "Mia · 12:00–20:00",
+              ].map((x) => (
+                <div className="mini-shift" key={x}>
+                  {x}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  );
 }
