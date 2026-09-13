@@ -1,5 +1,11 @@
 # SchichtPro
 
+SchichtPro is a workforce scheduling platform with a Next.js web dashboard and
+an Expo/React Native mobile client for iOS and Android.
+
+- Web: `apps/web`
+- Mobile: `apps/mobile`
+
 SchichtPro is a workforce-management platform for shift-based teams.
 
 ## Product scope

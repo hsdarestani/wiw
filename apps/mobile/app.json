@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "SchichtPro",
+    "slug": "schichtpro",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "schichtpro",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "sbs.smarbiz.schichtpro"
+    },
+    "android": {
+      "package": "sbs.smarbiz.schichtpro",
+      "adaptiveIcon": { "backgroundColor": "#F4F6F8" }
+    },
+    "plugins": ["expo-router"],
+    "extra": {
+      "apiUrl": "https://schichtpro.smarbiz.sbs"
+    }
+  }
+}
