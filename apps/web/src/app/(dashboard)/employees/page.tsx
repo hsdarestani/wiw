@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { InviteForm } from "./invite-form";
+import { EmployeeManager } from "./employee-manager";
 
 const roleName = {
   OWNER: "Inhaber",
@@ -50,22 +51,18 @@ export default async function EmployeesPage() {
                 placeholder="Mitarbeiter suchen"
               />
             </div>
-            {members.map((member) => (
-              <div className="member-row" key={member.id}>
-                <div className="member">
-                  <span className="avatar">{`${member.firstName[0] ?? ""}${member.lastName[0] ?? ""}`}</span>
-                  <div>
-                    <strong>
-                      {member.firstName} {member.lastName}
-                    </strong>
-                    <small>{member.email}</small>
-                  </div>
-                </div>
-                <span className="role-pill">{roleName[member.role]}</span>
-                <span>Alle Standorte</span>
-                <span className="status-active">Aktiv</span>
-              </div>
-            ))}
+            <EmployeeManager
+              currentUserId={current.id}
+              canManage={["OWNER", "ADMIN"].includes(current.role)}
+              members={members.map((member) => ({
+                id: member.id,
+                name: `${member.firstName} ${member.lastName}`,
+                email: member.email,
+                role: member.role,
+                hourlyRate: Number(member.hourlyRate),
+                isActive: member.isActive,
+              }))}
+            />
           </section>
           {invitations.length > 0 && (
             <section className="panel invite-list">

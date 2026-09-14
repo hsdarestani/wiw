@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     );
   const email = parsed.data.email.trim().toLowerCase();
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await compare(parsed.data.password, user.passwordHash)))
+  if (!user || !user.isActive || !(await compare(parsed.data.password, user.passwordHash)))
     return NextResponse.json(
       { error: "E-Mail-Adresse oder Passwort ist falsch." },
       { status: 401 },

@@ -23,7 +23,7 @@ export async function getMobileUser(request: Request) {
     where: { tokenHash: tokenHash(token) },
     include: { user: { include: { organization: true } } },
   });
-  if (!session || session.expiresAt <= new Date()) return null;
+  if (!session || session.expiresAt <= new Date() || !session.user.isActive) return null;
   return session.user;
 }
 
