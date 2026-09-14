@@ -27,7 +27,7 @@ const links = [
   [CalendarClock, "Verfügbarkeit", "/availability"],
   [ArrowLeftRight, "Schichttausch", "/shift-trades"],
   [MessageSquare, "Nachrichten", "#"],
-  [WalletCards, "Lohnabrechnung", "#"],
+  [WalletCards, "Lohnabrechnung", "/reports"],
 ] as const;
 
 export default async function DashboardLayout({
