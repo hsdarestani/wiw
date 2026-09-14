@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     timeEntries,
     availability,
     messages,
+    notifications,
   ] = await Promise.all([
     prisma.shift.findMany({
       where: {
@@ -90,6 +91,7 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "asc" },
       take: 200,
     }),
+    prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 100 }),
   ]);
   const serializeShift = (shift: (typeof shifts)[number]) => ({
     id: shift.id,
@@ -156,6 +158,7 @@ export async function GET(request: Request) {
       endMinute: item.endMinute,
       available: item.available,
     })),
+    notifications: notifications.map((item) => ({ id: item.id, type: item.type, title: item.title, body: item.body, href: item.href, readAt: item.readAt?.toISOString() ?? null, createdAt: item.createdAt.toISOString() })),
     messages: messages.map((item) => ({
       id: item.id,
       content: item.content,

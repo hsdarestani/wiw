@@ -39,7 +39,9 @@ export async function POST(request: Request) {
       { error: "Für diesen Zeitraum besteht bereits eine Anfrage." },
       { status: 409 },
     );
-  const item = await prisma.timeOffRequest.create({
+  const managers = await prisma.user.findMany({ where: { organizationId: user.organizationId, role: { in: ["OWNER", "ADMIN", "MANAGER"] }, id: { not: user.id } }, select: { id: true } });
+  const item = await prisma.$transaction(async (tx) => {
+    const created = await tx.timeOffRequest.create({
     data: {
       organizationId: user.organizationId,
       userId: user.id,
@@ -48,6 +50,9 @@ export async function POST(request: Request) {
       requestType: parsed.data.requestType,
       note: parsed.data.note || null,
     },
+    });
+    if (managers.length) await tx.notification.createMany({ data: managers.map((manager) => ({ organizationId: user.organizationId, userId: manager.id, type: "TIME_OFF", title: "Neue Abwesenheitsanfrage", body: `${user.firstName} ${user.lastName} hat eine Anfrage eingereicht.`, href: "/time-off" })) });
+    return created;
   });
   return NextResponse.json({ request: item }, { status: 201 });
 }

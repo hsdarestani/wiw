@@ -17,7 +17,9 @@ export async function POST(request: Request) {
       { error: "Ungültiger Zeitraum." },
       { status: 400 },
     );
-  const result = await prisma.shift.updateMany({
+  const drafts = await prisma.shift.findMany({ where: { organizationId: user.organizationId, status: "DRAFT", startsAt: { gte: new Date(parsed.data.startsAt), lt: new Date(parsed.data.endsAt) }, assigneeId: { not: null } }, select: { assigneeId: true } });
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.shift.updateMany({
     where: {
       organizationId: user.organizationId,
       status: "DRAFT",
@@ -27,6 +29,10 @@ export async function POST(request: Request) {
       },
     },
     data: { status: "PUBLISHED" },
+    });
+    const assignees = [...new Set(drafts.flatMap((shift) => shift.assigneeId ? [shift.assigneeId] : []))];
+    if (assignees.length) await tx.notification.createMany({ data: assignees.map((userId) => ({ organizationId: user.organizationId, userId, type: "SCHEDULE", title: "Dienstplan veröffentlicht", body: "Dein Dienstplan wurde aktualisiert.", href: "/schedule" })) });
+    return updated;
   });
   return NextResponse.json({ published: result.count });
 }
