@@ -19,7 +19,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
 const links = [
-  [LayoutDashboard, "Übersicht", "#"],
+  [LayoutDashboard, "Übersicht", "/dashboard"],
   [CalendarDays, "Dienstplan", "/schedule"],
   [Clock3, "Zeiterfassung", "/time-clock"],
   [Users, "Mitarbeiter", "/employees"],
@@ -58,7 +58,7 @@ export default async function DashboardLayout({
             <Store size={18} />
             Standorte
           </Link>
-          <Link className="nav-item" href="#">
+          <Link className="nav-item" href="/settings">
             <Settings size={18} />
             Einstellungen
           </Link>
