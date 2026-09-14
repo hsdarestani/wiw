@@ -54,7 +54,7 @@ export default async function DashboardLayout({
             </Link>
           ))}
           <div className="nav-section">Verwaltung</div>
-          <Link className="nav-item" href="#">
+          <Link className="nav-item" href="/settings/workplaces">
             <Store size={18} />
             Standorte
           </Link>
