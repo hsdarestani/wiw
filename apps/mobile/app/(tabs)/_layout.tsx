@@ -47,6 +47,7 @@ export default function TabsLayout() {
         name="inbox"
         options={{ title: "Nachrichten", tabBarIcon: icon("chatbubble") }}
       />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
       <Tabs.Screen
         name="more"
         options={{

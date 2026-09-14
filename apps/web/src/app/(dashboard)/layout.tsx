@@ -15,6 +15,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -37,6 +38,7 @@ export default async function DashboardLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  const unreadNotifications = await prisma.notification.count({ where: { userId: user.id, readAt: null } });
   const initials =
     `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
   return (
@@ -85,9 +87,10 @@ export default async function DashboardLayout({
           </button>
           <span className="topbar-title">SchichtPro</span>
           <div className="topbar-right">
-            <button className="icon-button" aria-label="Benachrichtigungen">
+            <Link className="icon-button" href="/notifications" aria-label="Benachrichtigungen" style={{ position: "relative" }}>
               <Bell size={20} />
-            </button>
+              {unreadNotifications > 0 && <span style={{ position: "absolute", right: 1, top: 0, minWidth: 16, height: 16, borderRadius: 8, background: "#cf3e4f", color: "white", fontSize: 9, display: "grid", placeItems: "center" }}>{Math.min(unreadNotifications, 99)}</span>}
+            </Link>
             <button className="btn">Hilfe</button>
           </div>
         </header>

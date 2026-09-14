@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
+import { router } from "expo-router";
 import {
   Alert,
   RefreshControl,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -67,11 +69,10 @@ export default function ScheduleScreen() {
       <PageHeader
         title="Mein Dienstplan"
         action={
-          <Ionicons
-            name="notifications-outline"
-            size={23}
-            color={colors.navy}
-          />
+          <Pressable onPress={() => router.push("/notifications")}>
+            <Ionicons name="notifications-outline" size={23} color={colors.navy} />
+            {(data?.notifications.filter((item) => !item.readAt).length ?? 0) > 0 && <View style={{ position: "absolute", right: -2, top: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.danger }} />}
+          </Pressable>
         }
       />
       <ScrollView

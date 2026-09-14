@@ -58,6 +58,7 @@ export type Bootstrap = {
     endMinute: number;
     available: boolean;
   }>;
+  notifications: Array<{ id: string; type: string; title: string; body: string; href: string | null; readAt: string | null; createdAt: string }>;
   messages: Array<{
     id: string;
     content: string;
@@ -126,6 +127,7 @@ export const sendMessage = (content: string) =>
     method: "POST",
     body: JSON.stringify({ content }),
   });
+export const markNotificationRead = (id?: string) => call("/api/mobile/notifications", { method: "PATCH", body: JSON.stringify(id ? { id } : { all: true }) });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
   await AsyncStorage.removeItem(TOKEN_KEY);
