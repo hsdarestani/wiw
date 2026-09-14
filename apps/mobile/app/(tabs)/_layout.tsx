@@ -43,7 +43,10 @@ export default function TabsLayout() {
         name="requests"
         options={{ title: "Anfragen", tabBarIcon: icon("swap-horizontal") }}
       />
-      <Tabs.Screen name="inbox" options={{ href: null }} />
+      <Tabs.Screen
+        name="inbox"
+        options={{ title: "Nachrichten", tabBarIcon: icon("chatbubble") }}
+      />
       <Tabs.Screen
         name="more"
         options={{

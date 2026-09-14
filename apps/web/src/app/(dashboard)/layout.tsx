@@ -26,7 +26,7 @@ const links = [
   [CalendarOff, "Abwesenheiten", "/time-off"],
   [CalendarClock, "Verfügbarkeit", "/availability"],
   [ArrowLeftRight, "Schichttausch", "/shift-trades"],
-  [MessageSquare, "Nachrichten", "#"],
+  [MessageSquare, "Nachrichten", "/messages"],
   [WalletCards, "Lohnabrechnung", "/reports"],
 ] as const;
 

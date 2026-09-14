@@ -22,6 +22,7 @@ model Organization {
   shiftTrades       ShiftTrade[]
   timeEntries       TimeEntry[]
   auditLogs         AuditLog[]
+  messages          Message[]
 }
 
 model User {
@@ -44,6 +45,7 @@ model User {
   reviewedTrades    ShiftTrade[]       @relation("TradeReviewer")
   timeEntries       TimeEntry[]
   auditLogs         AuditLog[]
+  messages          Message[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -133,6 +135,18 @@ model AuditLog {
   @@index([entityType, entityId])
 }
 
+model Message {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
 model AvailabilityRule {
   id             String       @id @default(cuid())
   organizationId String
@@ -203,26 +217,26 @@ model ShiftTrade {
 }
 
 model TimeEntry {
-  id             String          @id @default(cuid())
-  organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  locationId     String?
-  location       Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  clockIn        DateTime
-  clockOut       DateTime?
-  breakStartedAt DateTime?
-  breakMinutes   Int             @default(0)
-  approvalStatus TimesheetStatus @default(PENDING)
-  reviewedById   String?
-  reviewedAt     DateTime?
-  source         TimeEntrySource
-  note           String?
-  correctionNote String?
+  id                    String          @id @default(cuid())
+  organizationId        String
+  organization          Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId            String?
+  location              Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  clockIn               DateTime
+  clockOut              DateTime?
+  breakStartedAt        DateTime?
+  breakMinutes          Int             @default(0)
+  approvalStatus        TimesheetStatus @default(PENDING)
+  reviewedById          String?
+  reviewedAt            DateTime?
+  source                TimeEntrySource
+  note                  String?
+  correctionNote        String?
   correctionRequestedAt DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
   @@index([organizationId, clockIn])
   @@index([userId, clockIn])

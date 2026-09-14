@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     swapOffers,
     timeEntries,
     availability,
+    messages,
   ] = await Promise.all([
     prisma.shift.findMany({
       where: {
@@ -82,6 +83,12 @@ export async function GET(request: Request) {
     prisma.availabilityRule.findMany({
       where: { userId: user.id },
       orderBy: [{ weekday: "asc" }, { startMinute: "asc" }],
+    }),
+    prisma.message.findMany({
+      where: { organizationId: user.organizationId },
+      include: { author: true },
+      orderBy: { createdAt: "asc" },
+      take: 200,
     }),
   ]);
   const serializeShift = (shift: (typeof shifts)[number]) => ({
@@ -148,6 +155,14 @@ export async function GET(request: Request) {
       startMinute: item.startMinute,
       endMinute: item.endMinute,
       available: item.available,
+    })),
+    messages: messages.map((item) => ({
+      id: item.id,
+      content: item.content,
+      createdAt: item.createdAt.toISOString(),
+      authorId: item.authorId,
+      authorName: `${item.author.firstName} ${item.author.lastName}`,
+      role: item.author.role,
     })),
   });
 }

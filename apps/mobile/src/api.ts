@@ -58,6 +58,14 @@ export type Bootstrap = {
     endMinute: number;
     available: boolean;
   }>;
+  messages: Array<{
+    id: string;
+    content: string;
+    createdAt: string;
+    authorId: string;
+    authorName: string;
+    role: string;
+  }>;
 };
 
 const API_URL =
@@ -112,6 +120,11 @@ export const requestTimesheetCorrection = (id: string, note: string) =>
   call(`/api/mobile/timesheets/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ note }),
+  });
+export const sendMessage = (content: string) =>
+  call("/api/mobile/messages", {
+    method: "POST",
+    body: JSON.stringify({ content }),
   });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
