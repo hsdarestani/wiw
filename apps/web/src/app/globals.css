@@ -566,3 +566,134 @@ button {
     min-width: 720px;
   }
 }
+
+.messages-page .page-heading {
+  margin-bottom: 18px;
+}
+.messages-page .page-heading h1 {
+  margin: 0 0 6px;
+  font-size: 25px;
+  color: #203443;
+}
+.messages-page .page-heading p {
+  margin: 0;
+  color: var(--muted);
+}
+.message-shell {
+  overflow: hidden;
+  max-width: 980px;
+}
+.message-title {
+  min-height: 58px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.message-title div {
+  display: grid;
+  gap: 4px;
+}
+.message-title span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.message-list {
+  min-height: 420px;
+  max-height: calc(100vh - 350px);
+  overflow-y: auto;
+  padding: 20px;
+  background: #f7f9fa;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+.message-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  max-width: 78%;
+}
+.message-row.mine {
+  margin-left: auto;
+}
+.message-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #dce8ec;
+  color: #355161;
+  font-size: 11px;
+  font-weight: 800;
+}
+.message-row.mine .message-avatar {
+  background: #cdebe3;
+  color: #087f73;
+}
+.message-row > div {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 3px 11px 11px 11px;
+  padding: 10px 13px;
+}
+.message-row.mine > div {
+  background: #e8f6f2;
+  border-color: #c5e5dc;
+  border-radius: 11px 3px 11px 11px;
+}
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.message-meta strong {
+  font-size: 12px;
+}
+.message-meta span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.message-row p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.message-compose {
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.message-compose textarea {
+  min-height: 44px;
+  max-height: 120px;
+  flex: 1;
+  resize: vertical;
+  border: 1px solid #ccd7dc;
+  border-radius: 6px;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--ink);
+}
+.message-compose .auth-error {
+  align-self: center;
+}
+@media (max-width: 720px) {
+  .message-list {
+    padding: 13px;
+  }
+  .message-row {
+    max-width: 94%;
+  }
+  .message-compose {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .message-compose .btn {
+    justify-content: center;
+  }
+}
