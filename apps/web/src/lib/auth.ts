@@ -25,6 +25,6 @@ export async function getCurrentUser() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const session = await prisma.session.findUnique({ where: { tokenHash: tokenHash(token) }, include: { user: { include: { organization: true } } } });
-  if (!session || session.expiresAt <= new Date()) return null;
+  if (!session || session.expiresAt <= new Date() || !session.user.isActive) return null;
   return session.user;
 }

@@ -38,6 +38,7 @@ model User {
   sessions          Session[]
   shifts            Shift[]
   hourlyRate        Decimal            @default(0) @db.Decimal(10, 2)
+  isActive          Boolean            @default(true)
   timeOffRequests   TimeOffRequest[]   @relation("Requester")
   reviewedTimeOff   TimeOffRequest[]   @relation("Reviewer")
   availabilityRules AvailabilityRule[]
@@ -50,6 +51,8 @@ model User {
   notifications     Notification[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+
+  @@index([organizationId, isActive])
 }
 
 model Location {
