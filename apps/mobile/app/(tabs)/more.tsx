@@ -16,7 +16,7 @@ const rows: Array<[keyof typeof Ionicons.glyphMap, string, string | null]> = [
   ["calendar-outline", "Abwesenheiten", "/time-off"],
   ["calendar-number-outline", "Verfügbarkeit", "/availability"],
   ["people-outline", "Team", null],
-  ["settings-outline", "Einstellungen", null],
+  ["settings-outline", "Passwort ändern", "/password"],
   ["help-circle-outline", "Hilfe & Support", null],
 ];
 export default function More() {

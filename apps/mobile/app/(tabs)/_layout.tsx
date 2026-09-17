@@ -48,6 +48,7 @@ export default function TabsLayout() {
         options={{ title: "Nachrichten", tabBarIcon: icon("chatbubble") }}
       />
       <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="password" options={{ href: null }} />
       <Tabs.Screen
         name="more"
         options={{
