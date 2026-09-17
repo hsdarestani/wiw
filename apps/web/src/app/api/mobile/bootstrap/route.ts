@@ -22,6 +22,7 @@ export async function GET(request: Request) {
     availability,
     messages,
     notifications,
+    management,
   ] = await Promise.all([
     prisma.shift.findMany({
       where: {
@@ -92,6 +93,13 @@ export async function GET(request: Request) {
       take: 200,
     }),
     prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 100 }),
+    new Set(["OWNER", "ADMIN", "MANAGER"]).has(user.role)
+      ? Promise.all([
+          prisma.user.findMany({ where: { organizationId: user.organizationId, isActive: true }, orderBy: [{ firstName: "asc" }, { lastName: "asc" }] }),
+          prisma.location.findMany({ where: { organizationId: user.organizationId }, orderBy: { name: "asc" } }),
+          prisma.position.findMany({ where: { organizationId: user.organizationId }, orderBy: { name: "asc" } }),
+        ])
+      : Promise.resolve(null),
   ]);
   const serializeShift = (shift: (typeof shifts)[number]) => ({
     id: shift.id,
@@ -167,5 +175,12 @@ export async function GET(request: Request) {
       authorName: `${item.author.firstName} ${item.author.lastName}`,
       role: item.author.role,
     })),
+    management: management
+      ? {
+          employees: management[0].map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}` })),
+          locations: management[1].map((item) => ({ id: item.id, name: item.name })),
+          positions: management[2].map((item) => ({ id: item.id, name: item.name, color: item.color })),
+        }
+      : null,
   });
 }
