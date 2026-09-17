@@ -69,10 +69,17 @@ export default function ScheduleScreen() {
       <PageHeader
         title="Mein Dienstplan"
         action={
-          <Pressable onPress={() => router.push("/notifications")}>
-            <Ionicons name="notifications-outline" size={23} color={colors.navy} />
-            {(data?.notifications.filter((item) => !item.readAt).length ?? 0) > 0 && <View style={{ position: "absolute", right: -2, top: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.danger }} />}
-          </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 18 }}>
+            {data?.management ? (
+              <Pressable accessibilityLabel="Schicht erstellen" onPress={() => router.push("/manage-shift")}>
+                <Ionicons name="add-circle-outline" size={25} color={colors.green} />
+              </Pressable>
+            ) : null}
+            <Pressable onPress={() => router.push("/notifications")}>
+              <Ionicons name="notifications-outline" size={23} color={colors.navy} />
+              {(data?.notifications.filter((item) => !item.readAt).length ?? 0) > 0 && <View style={{ position: "absolute", right: -2, top: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.danger }} />}
+            </Pressable>
+          </View>
         }
       />
       <ScrollView
