@@ -1,16 +1,12 @@
 import {
   Bell,
   CalendarDays,
-  CalendarOff,
-  CalendarClock,
   ArrowLeftRight,
   Clock3,
   LayoutDashboard,
   LogOut,
-  Menu,
   MessageSquare,
   Settings,
-  Store,
   Users,
   WalletCards,
 } from "lucide-react";
@@ -23,12 +19,8 @@ const links = [
   [LayoutDashboard, "Übersicht", "/dashboard"],
   [CalendarDays, "Dienstplan", "/schedule"],
   [Clock3, "Zeiterfassung", "/time-clock"],
-  [Users, "Mitarbeiter", "/employees"],
-  [CalendarOff, "Abwesenheiten", "/time-off"],
-  [CalendarClock, "Verfügbarkeit", "/availability"],
-  [ArrowLeftRight, "Schichttausch", "/shift-trades"],
   [MessageSquare, "Nachrichten", "/messages"],
-  [WalletCards, "Lohnabrechnung", "/reports"],
+  [WalletCards, "Berichte", "/reports"],
 ] as const;
 
 export default async function DashboardLayout({
@@ -45,26 +37,25 @@ export default async function DashboardLayout({
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">S</span>SchichtPro
+          <span className="brand-mark">S</span><span className="brand-name">SchichtPro</span>
         </div>
         <nav className="nav">
-          <div className="nav-section">{user.organization.name}</div>
           {links.map(([Icon, label, href]) => (
             <Link key={label} className="nav-item" href={href}>
               <Icon size={18} />
               {label}
             </Link>
           ))}
-          <div className="nav-section">Verwaltung</div>
-          <Link className="nav-item" href="/settings/workplaces">
-            <Store size={18} />
-            Standorte
-          </Link>
-          <Link className="nav-item" href="/settings">
-            <Settings size={18} />
-            Einstellungen
-          </Link>
         </nav>
+        <div className="top-actions">
+          <Link className="top-action" href="/shift-trades"><ArrowLeftRight size={17} /><span>Anfragen</span></Link>
+          <Link className="top-action" href="/employees"><Users size={17} /><span>Arbeitsplatz</span></Link>
+          <Link className="top-action" href="/settings"><Settings size={18} /><span>Einstellungen</span></Link>
+          <Link className="top-action notification-action" href="/notifications" aria-label="Benachrichtigungen">
+            <Bell size={19} />
+            {unreadNotifications > 0 && <span className="notification-count">{Math.min(unreadNotifications, 99)}</span>}
+          </Link>
+        </div>
         <div className="account">
           <span className="avatar">{initials}</span>
           <div>
@@ -81,19 +72,6 @@ export default async function DashboardLayout({
         </div>
       </aside>
       <main className="main">
-        <header className="topbar">
-          <button className="icon-button mobile-menu" aria-label="Menü">
-            <Menu size={20} />
-          </button>
-          <span className="topbar-title">SchichtPro</span>
-          <div className="topbar-right">
-            <Link className="icon-button" href="/notifications" aria-label="Benachrichtigungen" style={{ position: "relative" }}>
-              <Bell size={20} />
-              {unreadNotifications > 0 && <span style={{ position: "absolute", right: 1, top: 0, minWidth: 16, height: 16, borderRadius: 8, background: "#cf3e4f", color: "white", fontSize: 9, display: "grid", placeItems: "center" }}>{Math.min(unreadNotifications, 99)}</span>}
-            </Link>
-            <button className="btn">Hilfe</button>
-          </div>
-        </header>
         {children}
       </main>
     </div>

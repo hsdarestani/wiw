@@ -2,10 +2,14 @@
 import {
   ChevronLeft,
   ChevronRight,
+  CalendarRange,
   Copy,
+  MoreVertical,
   Plus,
   Send,
+  SlidersHorizontal,
   Trash2,
+  WandSparkles,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -162,7 +166,34 @@ export function ScheduleBoard({
     router.refresh();
   }
   return (
-    <div className="content">
+    <div className="scheduler-page">
+      <div className="scheduler-banner">
+        <strong>Dein Dienstplan ist bereit</strong>
+        <span>Erstelle Schichten und veröffentliche sie für dein Team.</span>
+      </div>
+      <div className="scheduler-heading">
+        <div>
+          <h1>{days[0].toLocaleDateString("de-DE", { day: "2-digit", month: "short" })} – {days[6].toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" })}</h1>
+          <p>Dienstplan nach Mitarbeitern</p>
+        </div>
+        <div className="scheduler-heading-actions">
+          <button className="square-tool" title="Automatisch zuweisen"><WandSparkles size={17} /></button>
+          <button className="square-tool" onClick={copyWeek} title="Vorwoche kopieren"><Copy size={17} /></button>
+          <button className="square-tool" title="Vorlagen"><CalendarRange size={17} /></button>
+          <button className="square-tool" title="Weitere Aktionen"><MoreVertical size={17} /></button>
+        </div>
+      </div>
+      <div className="planner-shell">
+        <aside className="schedule-filters">
+          <div className="filter-title"><SlidersHorizontal size={15} /> Filter</div>
+          <label>Positionen<select><option>Alle Positionen</option>{positions.map((p) => <option key={p.id}>{p.name}</option>)}</select></label>
+          <label>Standorte<select><option>Alle Standorte</option>{locations.map((l) => <option key={l.id}>{l.name}</option>)}</select></label>
+          <label>Mitarbeiter<select><option>Alle Mitarbeiter</option>{members.map((m) => <option key={m.id}>{m.name}</option>)}</select></label>
+          <div className="filter-title secondary">Weitere Werkzeuge</div>
+          <label className="filter-toggle"><span>Prognose</span><input type="checkbox" /></label>
+          <label className="filter-toggle"><span>Aufgabenlisten</span><input type="checkbox" /></label>
+        </aside>
+        <div className="planner-main">
       <div className="toolbar">
         <div className="week-control">
           <button onClick={() => nav(-1)}>
@@ -187,12 +218,8 @@ export function ScheduleBoard({
         <button className="btn" onClick={() => router.push("/schedule")}>
           Heute
         </button>
-        <button className="btn" onClick={copyWeek}>
-          <Copy size={15} />
-          Woche kopieren
-        </button>
         <span className="toolbar-spacer" />
-        <button className="btn" onClick={publish}>
+        <button className="btn publish" onClick={publish}>
           <Send size={15} />
           Veröffentlichen
         </button>
@@ -316,6 +343,8 @@ export function ScheduleBoard({
                 ))}
             </div>
           ))}
+        </div>
+      </div>
         </div>
       </div>
       {open && (
