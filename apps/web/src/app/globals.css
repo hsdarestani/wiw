@@ -403,6 +403,73 @@ button {
   }
 }
 
+/* Desktop workspace shell and scheduler, aligned with the focused scheduling workflow. */
+.shell { display: block; min-height: 100vh; }
+.sidebar {
+  position: fixed; inset: 0 0 auto 0; width: 100%; height: 58px; min-height: 58px;
+  background: #303234; display: flex; flex-direction: row; align-items: stretch;
+  color: #d7d7d7; z-index: 50;
+}
+.brand { height: 58px; min-width: 180px; padding: 0 18px; border: 0; border-right: 1px solid #454749; font-size: 16px; }
+.brand-mark { width: 27px; height: 27px; border-radius: 4px; background: #438f2e; }
+.nav { padding: 0; display: flex; gap: 0; }
+.nav-section { display: none; }
+.nav-item { height: 58px; border-radius: 0; padding: 0 18px; gap: 9px; color: #d1d1d1; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+.nav-item:hover, .nav-item.active { background: #242627; color: white; box-shadow: inset 0 -3px #71a92c; }
+.top-actions { margin-left: auto; display: flex; align-items: stretch; }
+.top-action { min-width: 54px; padding: 0 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #d5d5d5; text-decoration: none; font-size: 9px; text-transform: uppercase; border-left: 1px solid #454749; position: relative; }
+.top-action:hover { background: #242627; color: white; }
+.notification-count { position: absolute; top: 8px; right: 10px; min-width: 15px; height: 15px; border-radius: 8px; background: #d34141; color: white; display: grid; place-items: center; font-size: 9px; }
+.account { margin: 0; min-width: 190px; padding: 0 14px; border: 0; border-left: 1px solid #454749; }
+.account .avatar { width: 30px; height: 30px; }
+.account strong { font-size: 12px; color: white; }
+.account small { font-size: 9px; }
+.main { padding-top: 58px; min-width: 0; }
+.topbar { display: none; }
+.scheduler-page { min-height: calc(100vh - 58px); background: #f5f6f6; }
+.scheduler-banner { min-height: 64px; padding: 12px 26px; background: #edf9e9; border-bottom: 1px solid #d5e7cf; display: flex; flex-direction: column; justify-content: center; gap: 4px; color: #34422f; }
+.scheduler-banner strong { font-size: 14px; }
+.scheduler-banner span { font-size: 12px; }
+.scheduler-heading { min-height: 106px; padding: 25px 28px 18px; background: white; display: flex; align-items: center; border-bottom: 1px solid #d9dddf; }
+.scheduler-heading h1 { margin: 0; font-size: 27px; line-height: 1; color: #1f2528; letter-spacing: -.5px; }
+.scheduler-heading p { margin: 9px 0 0; color: #6d7478; font-size: 12px; }
+.scheduler-heading-actions { margin-left: auto; display: flex; gap: 7px; }
+.square-tool { width: 38px; height: 36px; border: 1px solid #d8dcde; border-radius: 3px; background: #fafafa; color: #697075; display: grid; place-items: center; }
+.square-tool:hover { background: #f1f3f3; color: #2b3134; }
+.planner-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: calc(100vh - 228px); }
+.schedule-filters { background: #f6f7f7; border-right: 1px solid #d9dddf; padding: 0 18px 24px; }
+.filter-title { margin: 0 -18px 16px; height: 43px; padding: 0 18px; display: flex; align-items: center; gap: 8px; background: #eceeee; color: #30383c; font-weight: 700; }
+.filter-title.secondary { margin-top: 24px; }
+.schedule-filters label { display: grid; gap: 7px; padding: 10px 3px 14px; border-bottom: 1px solid #e0e3e4; color: #4e595e; font-size: 12px; font-weight: 650; }
+.schedule-filters select { width: 100%; height: 36px; padding: 0 9px; border: 1px solid #cfd5d8; border-radius: 3px; background: white; color: #465158; }
+.schedule-filters .filter-toggle { display: flex; grid-template-columns: none; flex-direction: row; justify-content: space-between; align-items: center; }
+.planner-main { min-width: 0; padding: 15px 18px 30px; background: white; }
+.planner-main .toolbar { margin-bottom: 12px; }
+.planner-main .stats { border-radius: 3px 3px 0 0; min-height: 52px; }
+.planner-main .stat { padding: 8px 16px; }
+.planner-main .schedule-wrap { border-radius: 0; }
+.planner-main .schedule { grid-template-columns: 155px repeat(7, minmax(122px, 1fr)); min-width: 1010px; }
+.planner-main .head { height: 54px; padding: 9px; font-size: 12px; }
+.planner-main .employee, .planner-main .cell { min-height: 96px; }
+.btn.publish { background: #586064; color: white; border-color: #586064; }
+
+@media (max-width: 1100px) {
+  .brand { min-width: 58px; padding: 0 15px; }
+  .brand-name, .top-action span, .account > div { display: none; }
+  .nav-item { padding: 0 11px; font-size: 10px; }
+  .account { min-width: auto; }
+}
+@media (max-width: 760px) {
+  .sidebar { overflow-x: auto; }
+  .nav-item { min-width: 52px; justify-content: center; font-size: 0; }
+  .top-actions { display: none; }
+  .planner-shell { display: block; }
+  .schedule-filters { display: none; }
+  .scheduler-heading { padding-inline: 16px; }
+  .scheduler-heading-actions { gap: 4px; }
+  .planner-main { padding: 12px; }
+}
+
 .reports-heading {
   display: flex;
   align-items: flex-start;
