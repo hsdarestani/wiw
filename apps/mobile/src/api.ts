@@ -67,6 +67,11 @@ export type Bootstrap = {
     authorName: string;
     role: string;
   }>;
+  management: null | {
+    employees: Array<{ id: string; name: string }>;
+    locations: Array<{ id: string; name: string }>;
+    positions: Array<{ id: string; name: string; color: string }>;
+  };
 };
 
 const API_URL =
@@ -129,6 +134,15 @@ export const sendMessage = (content: string) =>
   });
 export const markNotificationRead = (id?: string) => call("/api/mobile/notifications", { method: "PATCH", body: JSON.stringify(id ? { id } : { all: true }) });
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
+export const createManagedShift = (body: {
+  assigneeId: string | null;
+  locationId: string;
+  positionId: string;
+  startsAt: string;
+  endsAt: string;
+  unpaidBreakMin: number;
+  notes?: string;
+}) => call("/api/mobile/manage/shifts", { method: "POST", body: JSON.stringify(body) });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
   await AsyncStorage.removeItem(TOKEN_KEY);
