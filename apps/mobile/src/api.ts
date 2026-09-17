@@ -128,6 +128,7 @@ export const sendMessage = (content: string) =>
     body: JSON.stringify({ content }),
   });
 export const markNotificationRead = (id?: string) => call("/api/mobile/notifications", { method: "PATCH", body: JSON.stringify(id ? { id } : { all: true }) });
+export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
   await AsyncStorage.removeItem(TOKEN_KEY);
