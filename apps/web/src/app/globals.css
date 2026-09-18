@@ -452,6 +452,16 @@ button {
 .planner-main .head { height: 54px; padding: 9px; font-size: 12px; }
 .planner-main .employee, .planner-main .cell { min-height: 96px; }
 .btn.publish { background: #586064; color: white; border-color: #586064; }
+.template-modal { width: min(620px, calc(100vw - 32px)); }
+.template-create { display: flex; gap: 9px; margin: 18px 0; }
+.template-create input { flex: 1; min-width: 0; height: 38px; border: 1px solid #cfd7da; border-radius: 4px; padding: 0 11px; }
+.template-list { border-top: 1px solid var(--line); }
+.template-row { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--line); }
+.template-row > div { display: flex; align-items: center; gap: 8px; }
+.template-row > div:first-child { display: grid; gap: 4px; }
+.template-row small { color: var(--muted); }
+.template-empty { color: var(--muted); text-align: center; padding: 24px; }
+.icon-button.danger { color: #b84049; }
 
 @media (max-width: 1100px) {
   .brand { min-width: 58px; padding: 0 15px; }

@@ -32,17 +32,21 @@ export function ScheduleBoard({
   locations,
   positions,
   shifts,
+  templates,
 }: {
   monday: string;
   members: Member[];
   locations: { id: string; name: string }[];
   positions: { id: string; name: string; color: string }[];
   shifts: Item[];
+  templates: { id: string; name: string; shiftCount: number }[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
   const days = useMemo(
     () =>
       Array.from({ length: 7 }, (_, i) => {
@@ -129,6 +133,26 @@ export function ScheduleBoard({
     }
     nav(1);
   }
+  async function saveTemplate() {
+    setLoading(true); setError("");
+    const response = await fetch("/api/schedule-templates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: templateName, startsAt: monday, endsAt: end.toISOString() }) });
+    const body = await response.json(); setLoading(false);
+    if (!response.ok) { setError(body.error); return; }
+    setTemplateName(""); router.refresh();
+  }
+  async function applyTemplate(id: string) {
+    setLoading(true); setError("");
+    const response = await fetch(`/api/schedule-templates/${id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ targetMonday: monday }) });
+    const body = await response.json(); setLoading(false);
+    if (!response.ok) { setError(body.error); return; }
+    setTemplatesOpen(false); router.refresh();
+  }
+  async function deleteTemplate(id: string) {
+    if (!confirm("Dieses Template wirklich löschen?")) return;
+    const response = await fetch(`/api/schedule-templates/${id}`, { method: "DELETE" });
+    if (!response.ok) { const body = await response.json(); setError(body.error); return; }
+    router.refresh();
+  }
   async function moveShift(
     shiftId: string,
     assigneeId: string | null,
@@ -179,7 +203,7 @@ export function ScheduleBoard({
         <div className="scheduler-heading-actions">
           <button className="square-tool" title="Automatisch zuweisen"><WandSparkles size={17} /></button>
           <button className="square-tool" onClick={copyWeek} title="Vorwoche kopieren"><Copy size={17} /></button>
-          <button className="square-tool" title="Vorlagen"><CalendarRange size={17} /></button>
+          <button className="square-tool" title="Vorlagen" onClick={() => setTemplatesOpen(true)}><CalendarRange size={17} /></button>
           <button className="square-tool" title="Weitere Aktionen"><MoreVertical size={17} /></button>
         </div>
       </div>
@@ -414,6 +438,28 @@ export function ScheduleBoard({
               {loading ? "Wird gespeichert …" : "Schicht speichern"}
             </button>
           </form>
+        </div>
+      )}
+      {templatesOpen && (
+        <div className="modal-backdrop">
+          <div className="shift-modal template-modal">
+            <button type="button" className="modal-close" onClick={() => setTemplatesOpen(false)}><X size={18} /></button>
+            <h2>Dienstplan-Templates</h2>
+            {error && <div className="auth-error">{error}</div>}
+            <div className="template-create">
+              <input value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Name des Templates" maxLength={80} />
+              <button className="btn primary" disabled={loading || !templateName.trim() || !shifts.length} onClick={saveTemplate}>Aktuelle Woche speichern</button>
+            </div>
+            <div className="template-list">
+              {templates.map((template) => (
+                <div className="template-row" key={template.id}>
+                  <div><strong>{template.name}</strong><small>{template.shiftCount} Schichten</small></div>
+                  <div><button className="btn" disabled={loading} onClick={() => applyTemplate(template.id)}>Anwenden</button><button className="icon-button danger" onClick={() => deleteTemplate(template.id)} aria-label="Template löschen"><Trash2 size={16} /></button></div>
+                </div>
+              ))}
+              {!templates.length && <p className="template-empty">Noch keine Templates gespeichert.</p>}
+            </div>
+          </div>
         </div>
       )}
     </div>

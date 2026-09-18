@@ -24,6 +24,36 @@ model Organization {
   auditLogs         AuditLog[]
   messages          Message[]
   notifications     Notification[]
+  scheduleTemplates ScheduleTemplate[]
+}
+
+model ScheduleTemplate {
+  id             String                 @id @default(cuid())
+  organizationId String
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  items          ScheduleTemplateItem[]
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId, createdAt])
+}
+
+model ScheduleTemplateItem {
+  id              String           @id @default(cuid())
+  templateId      String
+  template        ScheduleTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  weekdayOffset   Int
+  startMinute     Int
+  durationMinutes Int
+  unpaidBreakMin  Int              @default(0)
+  locationId      String
+  positionId      String
+  assigneeId      String?
+  notes           String?
+
+  @@index([templateId, weekdayOffset])
 }
 
 model User {
