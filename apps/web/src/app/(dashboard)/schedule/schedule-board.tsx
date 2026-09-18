@@ -47,6 +47,7 @@ export function ScheduleBoard({
   const [loading, setLoading] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [notice, setNotice] = useState("");
   const days = useMemo(
     () =>
       Array.from({ length: 7 }, (_, i) => {
@@ -153,6 +154,16 @@ export function ScheduleBoard({
     if (!response.ok) { const body = await response.json(); setError(body.error); return; }
     router.refresh();
   }
+  async function autoAssign() {
+    if (!shifts.some((shift) => !shift.assigneeId && shift.status === "OPEN")) { setError("In dieser Woche gibt es keine offenen Schichten."); return; }
+    if (!confirm("Offene Schichten anhand von Verfügbarkeit und aktueller Auslastung automatisch zuweisen?")) return;
+    setLoading(true); setError(""); setNotice("");
+    const response = await fetch("/api/shifts/auto-assign", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ startsAt: monday, endsAt: end.toISOString() }) });
+    const body = await response.json(); setLoading(false);
+    if (!response.ok) { setError(body.error); return; }
+    setNotice(`${body.assigned} Schichten zugewiesen${body.skipped ? ` · ${body.skipped} ohne passenden Mitarbeiter` : ""}.`);
+    router.refresh();
+  }
   async function moveShift(
     shiftId: string,
     assigneeId: string | null,
@@ -201,7 +212,7 @@ export function ScheduleBoard({
           <p>Dienstplan nach Mitarbeitern</p>
         </div>
         <div className="scheduler-heading-actions">
-          <button className="square-tool" title="Automatisch zuweisen"><WandSparkles size={17} /></button>
+          <button className="square-tool" disabled={loading} title="Automatisch zuweisen" onClick={autoAssign}><WandSparkles size={17} /></button>
           <button className="square-tool" onClick={copyWeek} title="Vorwoche kopieren"><Copy size={17} /></button>
           <button className="square-tool" title="Vorlagen" onClick={() => setTemplatesOpen(true)}><CalendarRange size={17} /></button>
           <button className="square-tool" title="Weitere Aktionen"><MoreVertical size={17} /></button>
@@ -255,6 +266,7 @@ export function ScheduleBoard({
       {error && !open && (
         <div className="auth-error schedule-error">{error}</div>
       )}
+      {notice && <div className="schedule-notice">{notice}</div>}
       <section className="stats">
         <div className="stat">
           <div className="stat-label">Geplante Stunden</div>
