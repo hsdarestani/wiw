@@ -12,6 +12,7 @@ const schema = z.object({
   endsAt: z.string().datetime(),
   unpaidBreakMin: z.number().int().min(0).max(480).default(0),
   notes: z.string().max(500).optional(),
+  taskListId: z.string().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       { error: "Das Schichtende muss nach dem Beginn liegen." },
       { status: 400 },
     );
-  const [location, position, assignee] = await Promise.all([
+  const [location, position, assignee, taskList] = await Promise.all([
     prisma.location.findFirst({
       where: {
         id: parsed.data.locationId,
@@ -52,8 +53,9 @@ export async function POST(request: Request) {
           },
         })
       : null,
+    parsed.data.taskListId ? prisma.taskList.findFirst({ where: { id: parsed.data.taskListId, organizationId: user.organizationId } }) : null,
   ]);
-  if (!location || !position || (parsed.data.assigneeId && !assignee))
+  if (!location || !position || (parsed.data.assigneeId && !assignee) || (parsed.data.taskListId && !taskList))
     return NextResponse.json(
       { error: "Mitarbeiter, Standort oder Position ist ungültig." },
       { status: 400 },
@@ -74,6 +76,7 @@ export async function POST(request: Request) {
       unpaidBreakMin: parsed.data.unpaidBreakMin,
       notes: parsed.data.notes || null,
       status: assignee ? "DRAFT" : "OPEN",
+      taskListId: taskList?.id ?? null,
     },
   });
   return NextResponse.json({ shift }, { status: 201 });

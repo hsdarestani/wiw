@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         startsAt: { gte: start, lt: end },
         status: "PUBLISHED",
       },
-      include: { location: true, position: true },
+      include: { location: true, position: true, taskList: { include: { items: { orderBy: { sortOrder: "asc" }, include: { completions: true } } } } },
       orderBy: { startsAt: "asc" },
     }),
     prisma.shift.findMany({
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         startsAt: { gte: start, lt: end },
         status: "OPEN",
       },
-      include: { location: true, position: true },
+      include: { location: true, position: true, taskList: { include: { items: { orderBy: { sortOrder: "asc" }, include: { completions: true } } } } },
       orderBy: { startsAt: "asc" },
     }),
     prisma.timeOffRequest.findMany({
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
           : { OR: [{ ownerId: user.id }, { claimantId: user.id }] }),
       },
       include: {
-        shift: { include: { location: true, position: true } },
+        shift: { include: { location: true, position: true, taskList: { include: { items: { orderBy: { sortOrder: "asc" }, include: { completions: true } } } } } },
         owner: true,
         claimant: true,
       },
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
         ownerId: { not: user.id },
       },
       include: {
-        shift: { include: { location: true, position: true } },
+        shift: { include: { location: true, position: true, taskList: { include: { items: { orderBy: { sortOrder: "asc" }, include: { completions: true } } } } } },
         owner: true,
       },
       orderBy: { createdAt: "desc" },
@@ -98,6 +98,7 @@ export async function GET(request: Request) {
           prisma.user.findMany({ where: { organizationId: user.organizationId, isActive: true }, orderBy: [{ firstName: "asc" }, { lastName: "asc" }] }),
           prisma.location.findMany({ where: { organizationId: user.organizationId }, orderBy: { name: "asc" } }),
           prisma.position.findMany({ where: { organizationId: user.organizationId }, orderBy: { name: "asc" } }),
+          prisma.taskList.findMany({ where: { organizationId: user.organizationId }, include: { _count: { select: { items: true } } }, orderBy: { name: "asc" } }),
         ])
       : Promise.resolve(null),
   ]);
@@ -110,6 +111,7 @@ export async function GET(request: Request) {
     location: shift.location.name,
     position: shift.position.name,
     color: shift.position.color,
+    taskList: shift.taskList ? { id: shift.taskList.id, name: shift.taskList.name, items: shift.taskList.items.map((item) => ({ id: item.id, title: item.title, completed: item.completions.some((completion) => completion.shiftId === shift.id) })) } : null,
   });
   return NextResponse.json({
     user: {
@@ -180,6 +182,7 @@ export async function GET(request: Request) {
           employees: management[0].map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}` })),
           locations: management[1].map((item) => ({ id: item.id, name: item.name })),
           positions: management[2].map((item) => ({ id: item.id, name: item.name, color: item.color })),
+          taskLists: management[3].map((item) => ({ id: item.id, name: item.name, itemCount: item._count.items })),
         }
       : null,
   });

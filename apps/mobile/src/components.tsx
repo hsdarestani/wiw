@@ -25,17 +25,20 @@ export function ShiftCard({
   actionLabel,
   onAction,
   busy = false,
+  onPress,
 }: {
   shift: Shift;
   open?: boolean;
   actionLabel?: string;
   onAction?: () => void;
   busy?: boolean;
+  onPress?: () => void;
 }) {
   const start = new Date(shift.startsAt);
   const end = new Date(shift.endsAt);
   return (
     <Pressable
+      onPress={onPress}
       style={({ pressed }) => [styles.shift, pressed && { opacity: 0.75 }]}
     >
       <View style={[styles.shiftBar, { backgroundColor: shift.color }]} />
