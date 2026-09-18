@@ -5,6 +5,9 @@ import { clockIn, clockOut, toggleBreak } from "@/lib/time-clock";
 
 const schema = z.object({
   action: z.enum(["CLOCK_IN", "CLOCK_OUT", "TOGGLE_BREAK"]),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  accuracy: z.number().min(0).max(5000).optional(),
 });
 export async function POST(request: Request) {
   const user = await getMobileUser(request);
@@ -15,7 +18,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Ungültige Aktion." }, { status: 400 });
   const result =
     parsed.data.action === "CLOCK_IN"
-      ? await clockIn(user, "MOBILE")
+      ? await clockIn(user, "MOBILE", parsed.data.latitude !== undefined && parsed.data.longitude !== undefined ? { latitude: parsed.data.latitude, longitude: parsed.data.longitude, accuracy: parsed.data.accuracy } : undefined)
       : parsed.data.action === "CLOCK_OUT"
         ? await clockOut(user)
         : await toggleBreak(user);

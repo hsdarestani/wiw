@@ -21,7 +21,7 @@ export default async function WorkplacesPage() {
   ]);
   return (
     <WorkplaceSettings
-      locations={locations.map((item) => ({ id: item.id, name: item.name, usage: item._count.shifts + item._count.invitations + item._count.timeEntries }))}
+      locations={locations.map((item) => ({ id: item.id, name: item.name, usage: item._count.shifts + item._count.invitations + item._count.timeEntries, latitude: item.latitude, longitude: item.longitude, geofenceRadius: item.geofenceRadius }))}
       positions={positions.map((item) => ({ id: item.id, name: item.name, color: item.color, usage: item._count.shifts }))}
     />
   );

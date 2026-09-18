@@ -23,6 +23,7 @@ export async function GET(request: Request) {
     messages,
     notifications,
     management,
+    geofenceCount,
   ] = await Promise.all([
     prisma.shift.findMany({
       where: {
@@ -101,6 +102,7 @@ export async function GET(request: Request) {
           prisma.taskList.findMany({ where: { organizationId: user.organizationId }, include: { _count: { select: { items: true } } }, orderBy: { name: "asc" } }),
         ])
       : Promise.resolve(null),
+    prisma.location.count({ where: { organizationId: user.organizationId, latitude: { not: null }, longitude: { not: null } } }),
   ]);
   const serializeShift = (shift: (typeof shifts)[number]) => ({
     id: shift.id,
@@ -185,5 +187,6 @@ export async function GET(request: Request) {
           taskLists: management[3].map((item) => ({ id: item.id, name: item.name, itemCount: item._count.items })),
         }
       : null,
+    clockPolicy: { locationRequired: geofenceCount > 0 },
   });
 }

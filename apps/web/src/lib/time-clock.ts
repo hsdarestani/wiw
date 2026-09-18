@@ -2,13 +2,27 @@ import { Prisma, TimeEntrySource } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type ClockUser = { id: string; organizationId: string };
+type Coordinates = { latitude: number; longitude: number; accuracy?: number };
+const distanceMeters = (a: Coordinates, b: Coordinates) => {
+  const toRad = (value: number) => value * Math.PI / 180, earth = 6371000;
+  const dLat = toRad(b.latitude - a.latitude), dLon = toRad(b.longitude - a.longitude);
+  const value = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return 2 * earth * Math.asin(Math.sqrt(value));
+};
 
-export async function clockIn(user: ClockUser, source: TimeEntrySource) {
+export async function clockIn(user: ClockUser, source: TimeEntrySource, coordinates?: Coordinates) {
   const existing = await prisma.timeEntry.findFirst({
     where: { userId: user.id, clockOut: null },
   });
   if (existing)
     return { error: "Du bist bereits eingestempelt.", status: 409 } as const;
+  const geofences = await prisma.location.findMany({ where: { organizationId: user.organizationId, latitude: { not: null }, longitude: { not: null } } });
+  let matchedLocation: (typeof geofences)[number] | undefined;
+  if (geofences.length) {
+    if (!coordinates) return { error: "Für diesen Arbeitsplatz ist der Standort beim Einstempeln erforderlich.", status: 400 } as const;
+    matchedLocation = geofences.map((location) => ({ location, distance: distanceMeters(coordinates, { latitude: location.latitude!, longitude: location.longitude! }) })).filter((item) => item.distance <= item.location.geofenceRadius + Math.min(coordinates.accuracy ?? 0, 100)).sort((a, b) => a.distance - b.distance)[0]?.location;
+    if (!matchedLocation) return { error: "Du befindest dich außerhalb des erlaubten Arbeitsbereichs.", status: 403 } as const;
+  }
   try {
     const entry = await prisma.timeEntry.create({
       data: {
@@ -16,6 +30,10 @@ export async function clockIn(user: ClockUser, source: TimeEntrySource) {
         userId: user.id,
         clockIn: new Date(),
         source,
+        locationId: matchedLocation?.id,
+        clockInLatitude: coordinates?.latitude,
+        clockInLongitude: coordinates?.longitude,
+        clockInAccuracy: coordinates?.accuracy,
       },
     });
     return { entry } as const;

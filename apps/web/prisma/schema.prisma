@@ -96,6 +96,9 @@ model Location {
   invitations    Invitation[]
   shifts         Shift[]
   timeEntries    TimeEntry[]
+  latitude       Float?
+  longitude      Float?
+  geofenceRadius Int          @default(150)
 }
 
 model Position {
@@ -332,6 +335,9 @@ model TimeEntry {
   correctionRequestedAt DateTime?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
+  clockInLatitude       Float?
+  clockInLongitude      Float?
+  clockInAccuracy       Float?
 
   @@index([organizationId, clockIn])
   @@index([userId, clockIn])
