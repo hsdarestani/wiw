@@ -35,7 +35,7 @@ export default async function SchedulePage({
       where: { organizationId: user.organizationId },
     });
   }
-  const [members, locations, shifts, templates] = await Promise.all([
+  const [members, locations, shifts, templates, taskLists] = await Promise.all([
     prisma.user.findMany({
       where: { organizationId: user.organizationId },
       orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
@@ -57,6 +57,7 @@ export default async function SchedulePage({
       include: { _count: { select: { items: true } } },
       orderBy: { updatedAt: "desc" },
     }),
+    prisma.taskList.findMany({ where: { organizationId: user.organizationId }, include: { _count: { select: { items: true } } }, orderBy: { name: "asc" } }),
   ]);
   return (
     <ScheduleBoard
@@ -69,6 +70,7 @@ export default async function SchedulePage({
       locations={locations.map((x) => ({ id: x.id, name: x.name }))}
       positions={positions.map((x) => ({ id: x.id, name: x.name, color: x.color }))}
       templates={templates.map((x) => ({ id: x.id, name: x.name, shiftCount: x._count.items }))}
+      taskLists={taskLists.map((x) => ({ id: x.id, name: x.name, itemCount: x._count.items }))}
       shifts={shifts.map((x) => ({
         id: x.id,
         assigneeId: x.assigneeId,

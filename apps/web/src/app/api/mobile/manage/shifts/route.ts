@@ -12,6 +12,7 @@ const schema = z.object({
   endsAt: z.string().datetime(),
   unpaidBreakMin: z.number().int().min(0).max(480).default(0),
   notes: z.string().max(500).optional(),
+  taskListId: z.string().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -25,14 +26,15 @@ export async function POST(request: Request) {
   const endsAt = new Date(parsed.data.endsAt);
   if (endsAt <= startsAt)
     return NextResponse.json({ error: "Das Schichtende muss nach dem Beginn liegen." }, { status: 400 });
-  const [location, position, assignee] = await Promise.all([
+  const [location, position, assignee, taskList] = await Promise.all([
     prisma.location.findFirst({ where: { id: parsed.data.locationId, organizationId: user.organizationId } }),
     prisma.position.findFirst({ where: { id: parsed.data.positionId, organizationId: user.organizationId } }),
     parsed.data.assigneeId
       ? prisma.user.findFirst({ where: { id: parsed.data.assigneeId, organizationId: user.organizationId, isActive: true } })
       : null,
+    parsed.data.taskListId ? prisma.taskList.findFirst({ where: { id: parsed.data.taskListId, organizationId: user.organizationId } }) : null,
   ]);
-  if (!location || !position || (parsed.data.assigneeId && !assignee))
+  if (!location || !position || (parsed.data.assigneeId && !assignee) || (parsed.data.taskListId && !taskList))
     return NextResponse.json({ error: "Mitarbeiter, Standort oder Position ist ungültig." }, { status: 400 });
   if (assignee) {
     const conflict = await assignmentConflict(assignee.id, startsAt, endsAt);
@@ -49,6 +51,7 @@ export async function POST(request: Request) {
       unpaidBreakMin: parsed.data.unpaidBreakMin,
       notes: parsed.data.notes || null,
       status: assignee ? "DRAFT" : "OPEN",
+      taskListId: taskList?.id ?? null,
     },
   });
   return NextResponse.json({ shift }, { status: 201 });

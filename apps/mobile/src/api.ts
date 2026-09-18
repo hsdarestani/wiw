@@ -10,6 +10,7 @@ export type Shift = {
   location: string;
   position: string;
   color: string;
+  taskList: null | { id: string; name: string; items: Array<{ id: string; title: string; completed: boolean }> };
 };
 export type RequestItem = {
   id: string;
@@ -71,6 +72,7 @@ export type Bootstrap = {
     employees: Array<{ id: string; name: string }>;
     locations: Array<{ id: string; name: string }>;
     positions: Array<{ id: string; name: string; color: string }>;
+    taskLists: Array<{ id: string; name: string; itemCount: number }>;
   };
 };
 
@@ -142,7 +144,9 @@ export const createManagedShift = (body: {
   endsAt: string;
   unpaidBreakMin: number;
   notes?: string;
+  taskListId?: string | null;
 }) => call("/api/mobile/manage/shifts", { method: "POST", body: JSON.stringify(body) });
+export const setShiftTask = (shiftId: string, taskItemId: string, completed: boolean) => call("/api/mobile/shift-tasks", { method: "POST", body: JSON.stringify({ shiftId, taskItemId, completed }) });
 export async function logout() {
   await call("/api/mobile/auth/logout", { method: "POST" }).catch(() => null);
   await AsyncStorage.removeItem(TOKEN_KEY);

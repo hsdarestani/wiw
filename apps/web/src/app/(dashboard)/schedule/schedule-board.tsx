@@ -33,6 +33,7 @@ export function ScheduleBoard({
   positions,
   shifts,
   templates,
+  taskLists,
 }: {
   monday: string;
   members: Member[];
@@ -40,6 +41,7 @@ export function ScheduleBoard({
   positions: { id: string; name: string; color: string }[];
   shifts: Item[];
   templates: { id: string; name: string; shiftCount: number }[];
+  taskLists: { id: string; name: string; itemCount: number }[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -96,6 +98,7 @@ export function ScheduleBoard({
         startsAt: new Date(String(data.get("startsAt"))).toISOString(),
         endsAt: new Date(String(data.get("endsAt"))).toISOString(),
         unpaidBreakMin: Number(data.get("unpaidBreakMin") || 0),
+        taskListId: data.get("taskListId") || null,
       }),
     });
     const body = await response.json();
@@ -445,6 +448,10 @@ export function ScheduleBoard({
                 max="480"
                 defaultValue="0"
               />
+            </label>
+            <label>
+              Aufgabenliste
+              <select name="taskListId"><option value="">Keine Aufgabenliste</option>{taskLists.map((list) => <option key={list.id} value={list.id}>{list.name} ({list.itemCount})</option>)}</select>
             </label>
             <button className="auth-submit" disabled={loading}>
               {loading ? "Wird gespeichert …" : "Schicht speichern"}

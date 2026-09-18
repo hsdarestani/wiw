@@ -21,6 +21,7 @@ export default function ManageShiftScreen() {
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState(management?.locations[0]?.id ?? "");
   const [positionId, setPositionId] = useState(management?.positions[0]?.id ?? "");
+  const [taskListId, setTaskListId] = useState("");
   const [busy, setBusy] = useState(false);
 
   if (!management) {
@@ -42,6 +43,7 @@ export default function ManageShiftScreen() {
         endsAt: new Date(`${date}T${end}:00`).toISOString(),
         unpaidBreakMin: Math.max(0, Number(breakMinutes) || 0),
         notes: notes.trim() || undefined,
+        taskListId: taskListId || null,
       });
       await refresh();
       Alert.alert("Schicht erstellt", employeeId ? "Die Schicht wurde als Entwurf gespeichert." : "Die OpenShift wurde erstellt.", [{ text: "OK", onPress: () => router.back() }]);
@@ -64,6 +66,7 @@ export default function ManageShiftScreen() {
         <Choice label="Mitarbeiter" items={[{ id: "", name: "OpenShift" }, ...management.employees]} value={employeeId ?? ""} onChange={(value) => setEmployeeId(value || null)} />
         <Choice label="Standort" items={management.locations} value={locationId} onChange={setLocationId} />
         <Choice label="Position" items={management.positions} value={positionId} onChange={setPositionId} />
+        <Choice label="Aufgabenliste" items={[{ id: "", name: "Keine" }, ...management.taskLists]} value={taskListId} onChange={setTaskListId} />
         <Text style={styles.section}>NOTIZ</Text>
         <TextInput multiline value={notes} onChangeText={setNotes} placeholder="Optionale Hinweise für das Team" placeholderTextColor={colors.muted} style={styles.notes} />
       </ScrollView>

@@ -148,6 +148,7 @@ export default function ScheduleScreen() {
                   actionLabel="Anbieten"
                   busy={busy === shift.id}
                   onAction={() => offer(shift.id)}
+                  onPress={shift.taskList ? () => router.push({ pathname: "/shift-tasks", params: { shiftId: shift.id } }) : undefined}
                 />
               ))}
             </View>

@@ -1,0 +1,14 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { setShiftTask } from "@/api";
+import { useSession } from "@/session";
+import { colors } from "@/theme";
+export default function ShiftTasksScreen() {
+  const { shiftId } = useLocalSearchParams<{ shiftId: string }>(); const { data, refresh } = useSession(); const [busy, setBusy] = useState("");
+  const shift = data?.shifts.find((item) => item.id === shiftId), list = shift?.taskList;
+  async function toggle(id: string, completed: boolean) { setBusy(id); try { await setShiftTask(shiftId, id, completed); await refresh(); } catch (reason) { Alert.alert("Nicht möglich", reason instanceof Error ? reason.message : "Bitte erneut versuchen."); } finally { setBusy(""); } }
+  return <SafeAreaView style={styles.safe}><View style={styles.header}><Pressable onPress={() => router.back()}><Ionicons name="chevron-back" size={25} color={colors.navy} /></Pressable><Text style={styles.title}>Schichtaufgaben</Text><View style={{ width: 25 }} /></View><View style={styles.content}>{list ? <><Text style={styles.name}>{list.name}</Text><Text style={styles.progress}>{list.items.filter((item) => item.completed).length} von {list.items.length} erledigt</Text><View style={styles.list}>{list.items.map((item) => <Pressable disabled={busy === item.id} onPress={() => toggle(item.id, !item.completed)} style={styles.item} key={item.id}><Ionicons name={item.completed ? "checkmark-circle" : "ellipse-outline"} size={25} color={item.completed ? colors.green : colors.muted} /><Text style={[styles.itemText, item.completed && styles.done]}>{item.title}</Text></Pressable>)}</View></> : <Text style={styles.empty}>Keine Aufgabenliste für diese Schicht.</Text>}</View></SafeAreaView>;
+}
+const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: colors.background }, header: { height: 58, paddingHorizontal: 16, backgroundColor: "white", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, title: { color: colors.text, fontSize: 18, fontWeight: "700" }, content: { padding: 18 }, name: { fontSize: 22, fontWeight: "700", color: colors.text }, progress: { marginTop: 5, marginBottom: 18, color: colors.muted }, list: { backgroundColor: "white", borderWidth: 1, borderColor: colors.line, borderRadius: 10, overflow: "hidden" }, item: { minHeight: 58, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line }, itemText: { flex: 1, color: colors.text, fontSize: 15 }, done: { color: colors.muted, textDecorationLine: "line-through" }, empty: { color: colors.muted, textAlign: "center", marginTop: 40 } });
