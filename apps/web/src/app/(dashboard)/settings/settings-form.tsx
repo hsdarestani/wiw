@@ -3,7 +3,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type UserData = { firstName: string; lastName: string; email: string; role: string; hourlyRate: number; organization: string; industry: string };
+type UserData = { firstName: string; lastName: string; email: string; role: string; hourlyRate: number; organization: string; industry: string; clockRoundingMinutes: number; clockGraceMinutes: number; autoBreakAfterMinutes: number; autoBreakMinutes: number };
 export function SettingsForm({ user }: { user: UserData }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -19,12 +19,13 @@ export function SettingsForm({ user }: { user: UserData }) {
     if (!response.ok) return setError(body.error);
     window.location.href = "/login";
   }
-  async function submit(event: FormEvent<HTMLFormElement>, action: "PROFILE" | "ORGANIZATION") {
+  async function submit(event: FormEvent<HTMLFormElement>, action: "PROFILE" | "ORGANIZATION" | "TIME_CLOCK") {
     event.preventDefault(); setBusy(action); setMessage(""); setError("");
     const form = new FormData(event.currentTarget);
     const payload = action === "PROFILE"
       ? { action, firstName: form.get("firstName"), lastName: form.get("lastName"), hourlyRate: form.get("hourlyRate") }
-      : { action, name: form.get("name"), industry: form.get("industry") };
+      : action === "ORGANIZATION" ? { action, name: form.get("name"), industry: form.get("industry") }
+      : { action, clockRoundingMinutes: form.get("clockRoundingMinutes"), clockGraceMinutes: form.get("clockGraceMinutes"), autoBreakAfterMinutes: form.get("autoBreakAfterMinutes"), autoBreakMinutes: form.get("autoBreakMinutes") };
     const response = await fetch("/api/settings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
     const body = await response.json(); setBusy("");
     if (!response.ok) return setError(body.error);
@@ -36,6 +37,7 @@ export function SettingsForm({ user }: { user: UserData }) {
       <div className="invite-form"><div><h2>Aufgabenlisten</h2><p>Checklisten für wiederkehrende Schichtaufgaben erstellen.</p></div><Link className="btn" href="/settings/task-lists">Aufgabenlisten verwalten</Link></div>
       <form className="invite-form" onSubmit={(event) => submit(event, "PROFILE")}><div><h2>Mein Profil</h2><p>{user.email} · {user.role}</p></div><div className="form-row"><label>Vorname<input required name="firstName" defaultValue={user.firstName} /></label><label>Nachname<input name="lastName" defaultValue={user.lastName} /></label><label>Stundensatz (€)<input name="hourlyRate" type="number" min="0" step="0.01" defaultValue={user.hourlyRate} /></label><button className="btn primary" disabled={busy === "PROFILE"}>{busy === "PROFILE" ? "Speichern …" : "Profil speichern"}</button></div></form>
       <form className="invite-form" onSubmit={(event) => submit(event, "ORGANIZATION")}><div><h2>Unternehmen</h2><p>Diese Angaben gelten für das gesamte Team.</p></div><fieldset disabled={!canEditOrganization || busy === "ORGANIZATION"} style={{ border: 0, padding: 0, margin: 0 }}><div className="form-row"><label>Unternehmensname<input required name="name" defaultValue={user.organization} /></label><label>Branche<input name="industry" defaultValue={user.industry} /></label><button className="btn primary">{busy === "ORGANIZATION" ? "Speichern …" : "Unternehmen speichern"}</button></div></fieldset>{!canEditOrganization && <p style={{ color: "#697986", fontSize: 12 }}>Nur Inhaber und Administratoren können Unternehmensdaten ändern.</p>}</form>
+      <form className="invite-form" onSubmit={(event) => submit(event, "TIME_CLOCK")}><div><h2>Zeiterfassungsregeln</h2><p>Rundung, Kulanzfenster und automatische Pausen zentral steuern.</p></div><fieldset disabled={!canEditOrganization || busy === "TIME_CLOCK"} style={{ border: 0, padding: 0, margin: 0 }}><div className="form-row"><label>Rundungsintervall<select name="clockRoundingMinutes" defaultValue={user.clockRoundingMinutes}><option value="0">Keine Rundung</option><option value="5">5 Minuten</option><option value="10">10 Minuten</option><option value="15">15 Minuten</option></select></label><label>Kulanzfenster (Min.)<input name="clockGraceMinutes" type="number" min="0" max="15" defaultValue={user.clockGraceMinutes} /></label><label>Automatische Pause nach (Min.)<input name="autoBreakAfterMinutes" type="number" min="0" max="1440" defaultValue={user.autoBreakAfterMinutes} placeholder="0 = deaktiviert" /></label><label>Pausendauer (Min.)<input name="autoBreakMinutes" type="number" min="0" max="240" defaultValue={user.autoBreakMinutes} /></label><button className="btn primary">{busy === "TIME_CLOCK" ? "Speichern …" : "Regeln speichern"}</button></div></fieldset></form>
     </div>
     <form className="invite-form" style={{ marginTop: 18, maxWidth: 600 }} onSubmit={changePassword}><div><h2>Passwort ändern</h2><p>Nach der Änderung wirst du auf allen Geräten abgemeldet.</p></div><div className="form-row"><label>Aktuelles Passwort<input required name="currentPassword" type="password" autoComplete="current-password" minLength={8} /></label><label>Neues Passwort<input required name="newPassword" type="password" autoComplete="new-password" minLength={10} /></label><label>Neues Passwort bestätigen<input required name="confirmPassword" type="password" autoComplete="new-password" minLength={10} /></label><button className="btn primary" disabled={busy === "PASSWORD"}>{busy === "PASSWORD" ? "Wird geändert …" : "Passwort ändern"}</button></div></form>
   </div>;

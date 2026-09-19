@@ -8,24 +8,28 @@ datasource db {
 }
 
 model Organization {
-  id                String             @id @default(cuid())
-  name              String
-  industry          String?
-  createdAt         DateTime           @default(now())
-  users             User[]
-  locations         Location[]
-  invitations       Invitation[]
-  positions         Position[]
-  shifts            Shift[]
-  timeOffRequests   TimeOffRequest[]
-  availabilityRules AvailabilityRule[]
-  shiftTrades       ShiftTrade[]
-  timeEntries       TimeEntry[]
-  auditLogs         AuditLog[]
-  messages          Message[]
-  notifications     Notification[]
-  scheduleTemplates ScheduleTemplate[]
-  taskLists         TaskList[]
+  id                    String             @id @default(cuid())
+  name                  String
+  industry              String?
+  createdAt             DateTime           @default(now())
+  users                 User[]
+  locations             Location[]
+  invitations           Invitation[]
+  positions             Position[]
+  shifts                Shift[]
+  timeOffRequests       TimeOffRequest[]
+  availabilityRules     AvailabilityRule[]
+  shiftTrades           ShiftTrade[]
+  timeEntries           TimeEntry[]
+  auditLogs             AuditLog[]
+  messages              Message[]
+  notifications         Notification[]
+  scheduleTemplates     ScheduleTemplate[]
+  taskLists             TaskList[]
+  clockRoundingMinutes  Int                @default(0)
+  clockGraceMinutes     Int                @default(0)
+  autoBreakAfterMinutes Int?
+  autoBreakMinutes      Int                @default(0)
 }
 
 model ScheduleTemplate {
@@ -338,6 +342,8 @@ model TimeEntry {
   clockInLatitude       Float?
   clockInLongitude      Float?
   clockInAccuracy       Float?
+  actualClockIn         DateTime?
+  actualClockOut        DateTime?
 
   @@index([organizationId, clockIn])
   @@index([userId, clockIn])
