@@ -30,6 +30,7 @@ model Organization {
   clockGraceMinutes     Int                @default(0)
   autoBreakAfterMinutes Int?
   autoBreakMinutes      Int                @default(0)
+  conversations         Conversation[]
 }
 
 model ScheduleTemplate {
@@ -62,31 +63,34 @@ model ScheduleTemplateItem {
 }
 
 model User {
-  id                String                @id @default(cuid())
-  email             String                @unique
-  passwordHash      String
-  firstName         String
-  lastName          String
-  role              Role                  @default(OWNER)
-  organizationId    String
-  organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sessions          Session[]
-  shifts            Shift[]
-  hourlyRate        Decimal               @default(0) @db.Decimal(10, 2)
-  isActive          Boolean               @default(true)
-  timeOffRequests   TimeOffRequest[]      @relation("Requester")
-  reviewedTimeOff   TimeOffRequest[]      @relation("Reviewer")
-  availabilityRules AvailabilityRule[]
-  offeredTrades     ShiftTrade[]          @relation("TradeOwner")
-  claimedTrades     ShiftTrade[]          @relation("TradeClaimant")
-  reviewedTrades    ShiftTrade[]          @relation("TradeReviewer")
-  timeEntries       TimeEntry[]
-  auditLogs         AuditLog[]
-  messages          Message[]
-  notifications     Notification[]
-  taskCompletions   ShiftTaskCompletion[]
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
+  id                       String                    @id @default(cuid())
+  email                    String                    @unique
+  passwordHash             String
+  firstName                String
+  lastName                 String
+  role                     Role                      @default(OWNER)
+  organizationId           String
+  organization             Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions                 Session[]
+  shifts                   Shift[]
+  hourlyRate               Decimal                   @default(0) @db.Decimal(10, 2)
+  isActive                 Boolean                   @default(true)
+  timeOffRequests          TimeOffRequest[]          @relation("Requester")
+  reviewedTimeOff          TimeOffRequest[]          @relation("Reviewer")
+  availabilityRules        AvailabilityRule[]
+  offeredTrades            ShiftTrade[]              @relation("TradeOwner")
+  claimedTrades            ShiftTrade[]              @relation("TradeClaimant")
+  reviewedTrades           ShiftTrade[]              @relation("TradeReviewer")
+  timeEntries              TimeEntry[]
+  auditLogs                AuditLog[]
+  messages                 Message[]
+  notifications            Notification[]
+  taskCompletions          ShiftTaskCompletion[]
+  createdConversations     Conversation[]            @relation("ConversationCreator")
+  conversationParticipants ConversationParticipant[]
+  conversationMessages     ConversationMessage[]
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
 
   @@index([organizationId, isActive])
 }
@@ -230,6 +234,47 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@index([organizationId, createdAt])
+}
+
+model Conversation {
+  id             String                    @id @default(cuid())
+  organizationId String
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String?
+  isGroup        Boolean                   @default(false)
+  createdById    String
+  createdBy      User                      @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  participants   ConversationParticipant[]
+  messages       ConversationMessage[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([organizationId, updatedAt])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId, conversationId])
+}
+
+model ConversationMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model Notification {

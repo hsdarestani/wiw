@@ -60,14 +60,8 @@ export type Bootstrap = {
     available: boolean;
   }>;
   notifications: Array<{ id: string; type: string; title: string; body: string; href: string | null; readAt: string | null; createdAt: string }>;
-  messages: Array<{
-    id: string;
-    content: string;
-    createdAt: string;
-    authorId: string;
-    authorName: string;
-    role: string;
-  }>;
+  conversations: Array<{ id: string; title: string; isGroup: boolean; unread: number; messages: Array<{ id: string; content: string; createdAt: string; authorId: string; authorName: string }> }>;
+  directory: Array<{ id: string; name: string }>;
   management: null | {
     employees: Array<{ id: string; name: string }>;
     locations: Array<{ id: string; name: string }>;
@@ -136,6 +130,9 @@ export const sendMessage = (content: string) =>
     method: "POST",
     body: JSON.stringify({ content }),
   });
+export const createConversation = (participantIds: string[], name?: string) => call<{ conversation: { id: string } }>("/api/mobile/conversations", { method: "POST", body: JSON.stringify({ participantIds, name }) });
+export const sendConversationMessage = (conversationId: string, content: string) => call(`/api/mobile/conversations/${conversationId}/messages`, { method: "POST", body: JSON.stringify({ content }) });
+export const markConversationRead = (conversationId: string) => call(`/api/mobile/conversations/${conversationId}/messages`, { method: "PATCH" });
 export const markNotificationRead = (id?: string) => call("/api/mobile/notifications", { method: "PATCH", body: JSON.stringify(id ? { id } : { all: true }) });
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export const createManagedShift = (body: {

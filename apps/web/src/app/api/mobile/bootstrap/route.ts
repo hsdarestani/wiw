@@ -20,7 +20,8 @@ export async function GET(request: Request) {
     swapOffers,
     timeEntries,
     availability,
-    messages,
+    conversations,
+    directory,
     notifications,
     management,
     geofenceCount,
@@ -87,12 +88,8 @@ export async function GET(request: Request) {
       where: { userId: user.id },
       orderBy: [{ weekday: "asc" }, { startMinute: "asc" }],
     }),
-    prisma.message.findMany({
-      where: { organizationId: user.organizationId },
-      include: { author: true },
-      orderBy: { createdAt: "asc" },
-      take: 200,
-    }),
+    prisma.conversation.findMany({ where: { organizationId: user.organizationId, participants: { some: { userId: user.id } } }, include: { participants: { include: { user: true } }, messages: { include: { author: true }, orderBy: { createdAt: "asc" }, take: 200 } }, orderBy: { updatedAt: "desc" } }),
+    prisma.user.findMany({ where: { organizationId: user.organizationId, isActive: true, id: { not: user.id } }, select: { id: true, firstName: true, lastName: true }, orderBy: [{ firstName: "asc" }, { lastName: "asc" }] }),
     prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 100 }),
     new Set(["OWNER", "ADMIN", "MANAGER"]).has(user.role)
       ? Promise.all([
@@ -171,14 +168,8 @@ export async function GET(request: Request) {
       available: item.available,
     })),
     notifications: notifications.map((item) => ({ id: item.id, type: item.type, title: item.title, body: item.body, href: item.href, readAt: item.readAt?.toISOString() ?? null, createdAt: item.createdAt.toISOString() })),
-    messages: messages.map((item) => ({
-      id: item.id,
-      content: item.content,
-      createdAt: item.createdAt.toISOString(),
-      authorId: item.authorId,
-      authorName: `${item.author.firstName} ${item.author.lastName}`,
-      role: item.author.role,
-    })),
+    conversations: conversations.map((conversation) => { const mine = conversation.participants.find((item) => item.userId === user.id), others = conversation.participants.filter((item) => item.userId !== user.id); return { id: conversation.id, title: conversation.isGroup ? conversation.name || "Gruppe" : others.map((item) => `${item.user.firstName} ${item.user.lastName}`.trim()).join(", ") || "Nur du", isGroup: conversation.isGroup, unread: conversation.messages.filter((message) => message.authorId !== user.id && (!mine?.lastReadAt || message.createdAt > mine.lastReadAt)).length, messages: conversation.messages.map((message) => ({ id: message.id, content: message.content, createdAt: message.createdAt.toISOString(), authorId: message.authorId, authorName: `${message.author.firstName} ${message.author.lastName}`.trim() })) }; }),
+    directory: directory.map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}`.trim() })),
     management: management
       ? {
           employees: management[0].map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}` })),

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         { name: "Verkauf", color: "#3a9d71", organizationId: organization.id },
       ],
     });
-    return tx.user.create({
+    const owner = await tx.user.create({
       data: {
         email,
         passwordHash,
@@ -56,6 +56,16 @@ export async function POST(request: Request) {
         role: "OWNER",
       },
     });
+    await tx.conversation.create({
+      data: {
+        organizationId: organization.id,
+        createdById: owner.id,
+        name: "Team-Chat",
+        isGroup: true,
+        participants: { create: { userId: owner.id, lastReadAt: new Date() } },
+      },
+    });
+    return owner;
   });
   await createSession(user.id);
   return NextResponse.json({ ok: true }, { status: 201 });

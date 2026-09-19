@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       data: { acceptedAt: new Date() },
     });
     if (claimed.count !== 1) throw new Error("INVITATION_CLAIMED");
-    return tx.user.create({
+    const joinedUser = await tx.user.create({
       data: {
         email,
         passwordHash,
@@ -61,6 +61,20 @@ export async function POST(request: Request) {
         organizationId: invitation.organizationId,
       },
     });
+    const teamConversation = await tx.conversation.findFirst({
+      where: {
+        organizationId: invitation.organizationId,
+        isGroup: true,
+        name: "Team-Chat",
+      },
+      select: { id: true },
+    });
+    if (teamConversation) {
+      await tx.conversationParticipant.create({
+        data: { conversationId: teamConversation.id, userId: joinedUser.id },
+      });
+    }
+    return joinedUser;
   });
   await createSession(user.id);
   return NextResponse.json({ ok: true }, { status: 201 });
