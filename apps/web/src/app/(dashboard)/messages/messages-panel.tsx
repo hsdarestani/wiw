@@ -1,103 +1,14 @@
 "use client";
-import { FormEvent, useState } from "react";
-import { Send } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { MessageSquarePlus, Send, Users, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-type Item = {
-  id: string;
-  content: string;
-  createdAt: string;
-  authorId: string;
-  authorName: string;
-  role: string;
-};
-export function MessagesPanel({
-  messages,
-  currentUserId,
-}: {
-  messages: Item[];
-  currentUserId: string;
-}) {
-  const router = useRouter();
-  const [content, setContent] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!content.trim()) return;
-    setBusy(true);
-    setError("");
-    const response = await fetch("/api/messages", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ content }),
-    });
-    const body = await response.json();
-    setBusy(false);
-    if (!response.ok) return setError(body.error);
-    setContent("");
-    router.refresh();
-  }
-  return (
-    <div className="content messages-page">
-      <div className="page-heading">
-        <h1>Nachrichten</h1>
-        <p>Kommunikation mit deinem gesamten Team.</p>
-      </div>
-      <section className="panel message-shell">
-        <div className="message-title">
-          <div>
-            <strong>Team-Chat</strong>
-            <span>{messages.length} Nachrichten</span>
-          </div>
-        </div>
-        <div className="message-list">
-          {messages.length === 0 ? (
-            <div className="empty">
-              Starte die erste Unterhaltung mit deinem Team.
-            </div>
-          ) : (
-            messages.map((item) => (
-              <div
-                className={`message-row ${item.authorId === currentUserId ? "mine" : ""}`}
-                key={item.id}
-              >
-                <span className="message-avatar">
-                  {item.authorName
-                    .split(" ")
-                    .map((part) => part[0])
-                    .slice(0, 2)
-                    .join("")}
-                </span>
-                <div>
-                  <div className="message-meta">
-                    <strong>{item.authorName}</strong>
-                    <span>
-                      {item.role} ·{" "}
-                      {new Date(item.createdAt).toLocaleString("de-DE")}
-                    </span>
-                  </div>
-                  <p>{item.content}</p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        <form className="message-compose" onSubmit={submit}>
-          <textarea
-            aria-label="Nachricht"
-            maxLength={2000}
-            placeholder="Nachricht an das Team schreiben …"
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-          />
-          {error && <span className="auth-error">{error}</span>}
-          <button className="btn primary" disabled={busy || !content.trim()}>
-            <Send size={16} />
-            {busy ? "Senden …" : "Senden"}
-          </button>
-        </form>
-      </section>
-    </div>
-  );
+type Message = { id: string; content: string; createdAt: string; authorId: string; authorName: string };
+type Conversation = { id: string; title: string; isGroup: boolean; unread: number; messages: Message[] };
+export function MessagesPanel({ conversations, selectedId, currentUserId, members }: { conversations: Conversation[]; selectedId: string | null; currentUserId: string; members: Array<{ id: string; name: string }> }) {
+  const router = useRouter(), selected = conversations.find((x) => x.id === selectedId) ?? null;
+  const [content, setContent] = useState(""), [busy, setBusy] = useState(false), [error, setError] = useState(""), [creating, setCreating] = useState(false), [chosen, setChosen] = useState<string[]>([]), [groupName, setGroupName] = useState("");
+  useEffect(() => { if (selectedId) fetch(`/api/conversations/${selectedId}/messages`, { method: "PATCH" }); }, [selectedId]);
+  async function submit(event: FormEvent) { event.preventDefault(); if (!selected || !content.trim()) return; setBusy(true); setError(""); const response = await fetch(`/api/conversations/${selected.id}/messages`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ content }) }); const body = await response.json(); setBusy(false); if (!response.ok) return setError(body.error); setContent(""); router.refresh(); }
+  async function createConversation(event: FormEvent) { event.preventDefault(); setBusy(true); setError(""); const response = await fetch("/api/conversations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: groupName, participantIds: chosen }) }); const body = await response.json(); setBusy(false); if (!response.ok) return setError(body.error); setCreating(false); setChosen([]); setGroupName(""); router.push(`/messages?conversation=${body.conversation.id}`); router.refresh(); }
+  return <div className="content messages-page"><div className="page-heading"><div><h1>Nachrichten</h1><p>Private und Gruppenunterhaltungen mit deinem Team.</p></div><button className="btn primary" onClick={() => setCreating(true)}><MessageSquarePlus size={16} /> Neue Unterhaltung</button></div>{error && <div className="auth-error">{error}</div>}<section className="panel conversation-shell"><aside className="conversation-list">{conversations.map((conversation) => <button key={conversation.id} className={`conversation-item ${conversation.id === selectedId ? "active" : ""}`} onClick={() => router.push(`/messages?conversation=${conversation.id}`)}><span className="conversation-icon">{conversation.isGroup ? <Users size={17} /> : conversation.title.slice(0, 1).toUpperCase()}</span><span><strong>{conversation.title}</strong><small>{conversation.messages.at(-1)?.content || "Noch keine Nachricht"}</small></span>{conversation.unread > 0 && <b>{conversation.unread}</b>}</button>)}{!conversations.length && <div className="empty">Noch keine Unterhaltungen.</div>}</aside><div className="conversation-main">{selected ? <><div className="message-title"><div><strong>{selected.title}</strong><span>{selected.isGroup ? "Gruppenunterhaltung" : "Private Unterhaltung"}</span></div></div><div className="message-list">{selected.messages.map((item) => <div className={`message-row ${item.authorId === currentUserId ? "mine" : ""}`} key={item.id}><span className="message-avatar">{item.authorName.split(" ").map((x) => x[0]).slice(0, 2).join("")}</span><div><div className="message-meta"><strong>{item.authorName}</strong><span>{new Date(item.createdAt).toLocaleString("de-DE")}</span></div><p>{item.content}</p></div></div>)}{!selected.messages.length && <div className="empty">Schreibe die erste Nachricht.</div>}</div><form className="message-compose" onSubmit={submit}><textarea aria-label="Nachricht" maxLength={2000} placeholder="Nachricht schreiben …" value={content} onChange={(e) => setContent(e.target.value)} /><button className="btn primary" disabled={busy || !content.trim()}><Send size={16} /> Senden</button></form></> : <div className="empty">Wähle oder erstelle eine Unterhaltung.</div>}</div></section>{creating && <div className="modal-backdrop"><form className="shift-modal conversation-create" onSubmit={createConversation}><button type="button" className="modal-close" onClick={() => setCreating(false)}><X size={18} /></button><h2>Neue Unterhaltung</h2>{chosen.length > 1 && <label>Gruppenname<input value={groupName} onChange={(e) => setGroupName(e.target.value)} maxLength={80} /></label>}<div className="member-picker">{members.map((member) => <label key={member.id}><input type="checkbox" checked={chosen.includes(member.id)} onChange={() => setChosen((value) => value.includes(member.id) ? value.filter((id) => id !== member.id) : [...value, member.id])} /> {member.name}</label>)}</div><button className="btn primary" disabled={busy || !chosen.length}>{busy ? "Erstellen …" : chosen.length > 1 ? "Gruppe erstellen" : "Chat starten"}</button></form></div>}</div>;
 }

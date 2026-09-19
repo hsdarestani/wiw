@@ -1,154 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { sendMessage } from "@/api";
+import { useEffect, useState } from "react";
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { createConversation, markConversationRead, sendConversationMessage } from "@/api";
 import { PageHeader, shared } from "@/components";
 import { useSession } from "@/session";
 import { colors } from "@/theme";
-
 export default function Inbox() {
-  const { data, refresh } = useSession();
-  const [content, setContent] = useState("");
-  const [busy, setBusy] = useState(false);
-  const submit = async () => {
-    if (!content.trim()) return;
-    setBusy(true);
-    try {
-      await sendMessage(content.trim());
-      setContent("");
-      await refresh();
-    } catch (reason) {
-      Alert.alert(
-        "Nicht möglich",
-        reason instanceof Error ? reason.message : "Bitte versuche es erneut.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <SafeAreaView style={shared.safe}>
-      <KeyboardAvoidingView
-        style={styles.screen}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <PageHeader title="Nachrichten" />
-        <ScrollView contentContainerStyle={styles.list}>
-          {!data?.messages.length ? (
-            <View style={shared.empty}>
-              <Ionicons name="chatbubbles-outline" size={42} color="#9AA8B2" />
-              <Text style={shared.emptyTitle}>Noch keine Nachrichten</Text>
-              <Text style={shared.emptyText}>
-                Starte die Unterhaltung mit deinem Team.
-              </Text>
-            </View>
-          ) : (
-            data.messages.map((item) => {
-              const mine = item.authorId === data.user.id;
-              return (
-                <View
-                  key={item.id}
-                  style={[styles.message, mine && styles.mine]}
-                >
-                  <View style={styles.meta}>
-                    <Text style={styles.author}>{item.authorName}</Text>
-                    <Text style={styles.time}>
-                      {new Date(item.createdAt).toLocaleTimeString("de-DE", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </Text>
-                  </View>
-                  <Text style={styles.body}>{item.content}</Text>
-                </View>
-              );
-            })
-          )}
-        </ScrollView>
-        <View style={styles.compose}>
-          <TextInput
-            multiline
-            maxLength={2000}
-            placeholder="Nachricht schreiben …"
-            placeholderTextColor={colors.muted}
-            style={styles.input}
-            value={content}
-            onChangeText={setContent}
-          />
-          <Pressable
-            disabled={busy || !content.trim()}
-            onPress={submit}
-            style={[styles.send, (!content.trim() || busy) && styles.disabled]}
-          >
-            <Ionicons name="send" color="white" size={18} />
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+  const { data, refresh } = useSession(); const [selectedId, setSelectedId] = useState<string | null>(null), [content, setContent] = useState(""), [busy, setBusy] = useState(false), [creating, setCreating] = useState(false), [chosen, setChosen] = useState<string[]>([]), [name, setName] = useState("");
+  const selected = data?.conversations.find((item) => item.id === selectedId) ?? null;
+  useEffect(() => { if (selectedId) markConversationRead(selectedId).then(refresh).catch(() => null); }, [selectedId]);
+  async function submit() { if (!selected || !content.trim()) return; setBusy(true); try { await sendConversationMessage(selected.id, content.trim()); setContent(""); await refresh(); } catch (reason) { Alert.alert("Nicht möglich", reason instanceof Error ? reason.message : "Bitte erneut versuchen."); } finally { setBusy(false); } }
+  async function create() { if (!chosen.length) return; setBusy(true); try { const result = await createConversation(chosen, chosen.length > 1 ? name.trim() || undefined : undefined); await refresh(); setCreating(false); setChosen([]); setName(""); setSelectedId(result.conversation.id); } catch (reason) { Alert.alert("Nicht möglich", reason instanceof Error ? reason.message : "Bitte erneut versuchen."); } finally { setBusy(false); } }
+  if (!selected) return <SafeAreaView style={shared.safe}><PageHeader title="Nachrichten" action={<Pressable onPress={() => setCreating(true)}><Ionicons name="create-outline" size={24} color={colors.green} /></Pressable>} /><ScrollView contentContainerStyle={styles.conversationList}>{data?.conversations.map((conversation) => <Pressable key={conversation.id} style={styles.conversation} onPress={() => setSelectedId(conversation.id)}><View style={styles.avatar}><Ionicons name={conversation.isGroup ? "people" : "person"} size={19} color={colors.navy} /></View><View style={{ flex: 1 }}><Text style={styles.conversationTitle}>{conversation.title}</Text><Text style={styles.preview} numberOfLines={1}>{conversation.messages.at(-1)?.content || "Noch keine Nachricht"}</Text></View>{conversation.unread > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{conversation.unread}</Text></View>}<Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable>)}{!data?.conversations.length && <View style={shared.empty}><Ionicons name="chatbubbles-outline" size={42} color="#9AA8B2" /><Text style={shared.emptyTitle}>Noch keine Unterhaltungen</Text></View>}</ScrollView><Modal visible={creating} animationType="slide" presentationStyle="pageSheet"><SafeAreaView style={shared.safe}><PageHeader title="Neue Unterhaltung" action={<Pressable onPress={() => setCreating(false)}><Text style={styles.cancel}>Abbrechen</Text></Pressable>} /><ScrollView contentContainerStyle={styles.picker}>{chosen.length > 1 && <TextInput value={name} onChangeText={setName} placeholder="Gruppenname" placeholderTextColor={colors.muted} style={styles.nameInput} />}{data?.directory.map((member) => <Pressable key={member.id} style={styles.member} onPress={() => setChosen((value) => value.includes(member.id) ? value.filter((id) => id !== member.id) : [...value, member.id])}><Ionicons name={chosen.includes(member.id) ? "checkbox" : "square-outline"} size={24} color={chosen.includes(member.id) ? colors.green : colors.muted} /><Text style={styles.memberName}>{member.name}</Text></Pressable>)}<Pressable disabled={!chosen.length || busy} style={[styles.createButton, (!chosen.length || busy) && { opacity: .45 }]} onPress={create}><Text style={styles.createText}>{busy ? "Erstellen …" : chosen.length > 1 ? "Gruppe erstellen" : "Chat starten"}</Text></Pressable></ScrollView></SafeAreaView></Modal></SafeAreaView>;
+  return <SafeAreaView style={shared.safe}><KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}><PageHeader title={selected.title} action={<Pressable onPress={() => setSelectedId(null)}><Text style={styles.cancel}>Zurück</Text></Pressable>} /><ScrollView contentContainerStyle={styles.list}>{selected.messages.map((item) => { const mine = item.authorId === data?.user.id; return <View key={item.id} style={[styles.message, mine && styles.mine]}><View style={styles.meta}><Text style={styles.author}>{item.authorName}</Text><Text style={styles.time}>{new Date(item.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</Text></View><Text style={styles.body}>{item.content}</Text></View>; })}</ScrollView><View style={styles.compose}><TextInput multiline maxLength={2000} placeholder="Nachricht schreiben …" placeholderTextColor={colors.muted} style={styles.input} value={content} onChangeText={setContent} /><Pressable disabled={busy || !content.trim()} onPress={submit} style={[styles.send, (!content.trim() || busy) && { opacity: .45 }]}><Ionicons name="send" color="white" size={18} /></Pressable></View></KeyboardAvoidingView></SafeAreaView>;
 }
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  list: { padding: 16, gap: 9, flexGrow: 1 },
-  message: {
-    alignSelf: "flex-start",
-    maxWidth: "86%",
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    borderBottomLeftRadius: 3,
-    padding: 11,
-  },
-  mine: {
-    alignSelf: "flex-end",
-    backgroundColor: colors.greenSoft,
-    borderColor: "#BFE5D3",
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 3,
-  },
-  meta: { flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 5 },
-  author: { color: colors.navy, fontSize: 11, fontWeight: "800" },
-  time: { color: colors.muted, fontSize: 9 },
-  body: { color: colors.text, fontSize: 14, lineHeight: 20 },
-  compose: {
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    backgroundColor: "white",
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 9,
-  },
-  input: {
-    flex: 1,
-    minHeight: 42,
-    maxHeight: 105,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    color: colors.text,
-  },
-  send: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.green,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  disabled: { opacity: 0.45 },
-});
+const styles = StyleSheet.create({ conversationList: { padding: 12 }, conversation: { minHeight: 72, backgroundColor: "white", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line, padding: 11, flexDirection: "row", alignItems: "center", gap: 11 }, avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#E7EEF1", alignItems: "center", justifyContent: "center" }, conversationTitle: { color: colors.text, fontWeight: "700", fontSize: 15 }, preview: { color: colors.muted, marginTop: 4, fontSize: 12 }, badge: { minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: colors.green, alignItems: "center", justifyContent: "center" }, badgeText: { color: "white", fontSize: 10, fontWeight: "800" }, cancel: { color: colors.green, fontWeight: "700" }, picker: { padding: 16 }, nameInput: { height: 46, borderWidth: 1, borderColor: colors.line, borderRadius: 8, paddingHorizontal: 12, backgroundColor: "white", color: colors.text, marginBottom: 12 }, member: { minHeight: 56, paddingHorizontal: 12, backgroundColor: "white", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line, flexDirection: "row", alignItems: "center", gap: 11 }, memberName: { color: colors.text, fontSize: 15 }, createButton: { marginTop: 20, height: 48, borderRadius: 24, backgroundColor: colors.green, alignItems: "center", justifyContent: "center" }, createText: { color: "white", fontWeight: "800" }, list: { padding: 16, gap: 9, flexGrow: 1 }, message: { alignSelf: "flex-start", maxWidth: "86%", backgroundColor: "white", borderWidth: 1, borderColor: colors.line, borderRadius: 12, borderBottomLeftRadius: 3, padding: 11 }, mine: { alignSelf: "flex-end", backgroundColor: colors.greenSoft, borderColor: "#BFE5D3", borderBottomLeftRadius: 12, borderBottomRightRadius: 3 }, meta: { flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 5 }, author: { color: colors.navy, fontSize: 11, fontWeight: "800" }, time: { color: colors.muted, fontSize: 9 }, body: { color: colors.text, fontSize: 14, lineHeight: 20 }, compose: { padding: 10, borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: "white", flexDirection: "row", alignItems: "flex-end", gap: 9 }, input: { flex: 1, minHeight: 42, maxHeight: 105, borderRadius: 20, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 14, paddingVertical: 10, color: colors.text }, send: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.green, alignItems: "center", justifyContent: "center" } });
