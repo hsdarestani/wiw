@@ -74,6 +74,7 @@ export type Bootstrap = {
     positions: Array<{ id: string; name: string; color: string }>;
     taskLists: Array<{ id: string; name: string; itemCount: number }>;
   };
+  clockPolicy: { locationRequired: boolean };
 };
 
 const API_URL =
@@ -110,10 +111,11 @@ export const shiftAction = (body: Record<string, string>) =>
   });
 export const timeClockAction = (
   action: "CLOCK_IN" | "CLOCK_OUT" | "TOGGLE_BREAK",
+  coordinates?: { latitude: number; longitude: number; accuracy?: number },
 ) =>
   call("/api/mobile/time-clock", {
     method: "POST",
-    body: JSON.stringify({ action }),
+    body: JSON.stringify({ action, ...coordinates }),
   });
 export const timeOffAction = (body: Record<string, string>) =>
   call("/api/mobile/time-off", { method: "POST", body: JSON.stringify(body) });

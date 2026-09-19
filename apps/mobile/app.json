@@ -8,13 +8,14 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "sbs.smarbiz.schichtpro"
+      "bundleIdentifier": "sbs.smarbiz.schichtpro",
+      "infoPlist": { "NSLocationWhenInUseUsageDescription": "SchichtPro verwendet deinen Standort beim Einstempeln, um den Arbeitsort zu bestätigen." }
     },
     "android": {
       "package": "sbs.smarbiz.schichtpro",
       "adaptiveIcon": { "backgroundColor": "#F4F6F8" }
     },
-    "plugins": ["expo-router"],
+    "plugins": ["expo-router", ["expo-location", { "locationWhenInUsePermission": "SchichtPro verwendet deinen Standort beim Einstempeln, um den Arbeitsort zu bestätigen." }]],
     "extra": {
       "apiUrl": "https://schichtpro.smarbiz.sbs"
     }

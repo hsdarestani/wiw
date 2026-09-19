@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
+import * as Location from "expo-location";
 import {
   Alert,
   Pressable,
@@ -60,7 +61,14 @@ export default function ClockScreen() {
   const toggle = async () => {
     setBusy(true);
     try {
-      await timeClockAction(active ? "CLOCK_OUT" : "CLOCK_IN");
+      let coordinates: { latitude: number; longitude: number; accuracy?: number } | undefined;
+      if (!active && data?.clockPolicy.locationRequired) {
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (permission.status !== "granted") throw new Error("Standortzugriff ist für das Einstempeln an diesem Arbeitsplatz erforderlich.");
+        const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        coordinates = { latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy ?? undefined };
+      }
+      await timeClockAction(active ? "CLOCK_OUT" : "CLOCK_IN", coordinates);
       await refresh();
     } catch (reason) {
       Alert.alert(
@@ -127,6 +135,7 @@ export default function ClockScreen() {
               ? `Gestartet um ${new Date(active.clockIn).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`
               : "Du bist derzeit nicht eingestempelt."}
           </Text>
+          {!active && data?.clockPolicy.locationRequired ? <View style={styles.locationHint}><Ionicons name="location" size={14} color={colors.green} /><Text style={styles.locationHintText}>GPS-Prüfung beim Einstempeln aktiv</Text></View> : null}
           <Pressable disabled={busy} onPress={toggle} style={styles.button}>
             <Ionicons
               name={active ? "stop-circle" : "play-circle"}
@@ -278,6 +287,8 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   hint: { color: "#D5E1E7", fontSize: 13, marginTop: 5 },
+  locationHint: { marginTop: 10, flexDirection: "row", alignItems: "center", gap: 5 },
+  locationHintText: { color: "#CDE6D0", fontSize: 11, fontWeight: "700" },
   button: {
     height: 50,
     minWidth: 190,
