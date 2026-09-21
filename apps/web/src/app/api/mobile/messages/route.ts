@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Bitte gib eine Nachricht ein." }, { status: 400 });
   const recipients = await prisma.user.findMany({ where: { organizationId: user.organizationId, id: { not: user.id } }, select: { id: true } });
-  const message = await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     const created = await tx.message.create({ data: { organizationId: user.organizationId, authorId: user.id, content: parsed.data.content } });
     if (recipients.length) await tx.notification.createMany({ data: recipients.map((recipient) => ({ organizationId: user.organizationId, userId: recipient.id, type: "MESSAGE", title: "Neue Teamnachricht", body: `${user.firstName} ${user.lastName}: ${parsed.data.content.slice(0, 120)}`, href: "/messages" })) });
     return created;
