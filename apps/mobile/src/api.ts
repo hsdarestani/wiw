@@ -143,6 +143,12 @@ export const getManagedTimesheets = () => call<{ entries: ManagedTimesheet[] }>(
 export const reviewManagedTimesheet = (id: string, status: "APPROVED" | "DECLINED") => call(`/api/mobile/manage/timesheets/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
 export type PayrollReport = { from: string; to: string; status: string; totalHours: number; totalPayroll: number; entryCount: number; people: Array<{ id: string; name: string; rate: number; minutes: number; entries: number; hours: number; payroll: number }>; filename: string; csv: string };
 export const getPayrollReport = (from: string, to: string, status: string) => call<PayrollReport>(`/api/mobile/reports/payroll?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&status=${encodeURIComponent(status)}`);
+export type ManagedShift = { id: string; assigneeId: string | null; assignee: string; startsAt: string; endsAt: string; breakMinutes: number; status: string; location: string; position: string; color: string };
+export const getManagedSchedule = (from: string, to: string) => call<{ shifts: ManagedShift[] }>(`/api/mobile/manage/schedule?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+export const updateManagedShift = (id: string, assigneeId: string | null, startsAt: string, endsAt: string) => call(`/api/mobile/manage/schedule/${id}`, { method: "PATCH", body: JSON.stringify({ assigneeId, startsAt, endsAt }) });
+export const deleteManagedShift = (id: string) => call(`/api/mobile/manage/schedule/${id}`, { method: "DELETE" });
+export const publishManagedSchedule = (startsAt: string, endsAt: string) => call<{ published: number }>("/api/mobile/manage/schedule/publish", { method: "POST", body: JSON.stringify({ startsAt, endsAt }) });
+export const copyManagedWeek = (startsAt: string, endsAt: string) => call<{ copied: number }>("/api/mobile/manage/schedule/copy-week", { method: "POST", body: JSON.stringify({ startsAt, endsAt }) });
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export const createManagedShift = (body: {
   assigneeId: string | null;

@@ -54,6 +54,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="team" options={{ href: null }} />
       <Tabs.Screen name="timesheets" options={{ href: null }} />
       <Tabs.Screen name="reports" options={{ href: null }} />
+      <Tabs.Screen name="manage-schedule" options={{ href: null }} />
       <Tabs.Screen
         name="more"
         options={{
