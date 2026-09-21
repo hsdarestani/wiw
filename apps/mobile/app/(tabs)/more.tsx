@@ -16,6 +16,7 @@ const rows: Array<[keyof typeof Ionicons.glyphMap, string, string | null]> = [
   ["calendar-outline", "Abwesenheiten", "/time-off"],
   ["calendar-number-outline", "Verfügbarkeit", "/availability"],
   ["people-outline", "Team", "/team"],
+  ["timer-outline", "Arbeitszeiten prüfen", "/timesheets"],
   ["settings-outline", "Passwort ändern", "/password"],
   ["help-circle-outline", "Hilfe & Support", null],
 ];
@@ -38,7 +39,7 @@ export default function More() {
           </View>
         </View>
         <View style={styles.menu}>
-          {rows.map(([icon, label, href]) => (
+          {rows.filter(([, label]) => label !== "Arbeitszeiten prüfen" || ["OWNER", "ADMIN", "MANAGER"].includes(data?.user.role ?? "")).map(([icon, label, href]) => (
             <Pressable
               key={label}
               style={styles.row}
