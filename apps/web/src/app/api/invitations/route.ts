@@ -20,6 +20,8 @@ export async function POST(request: Request) {
       { error: "Bitte prüfe die Einladung." },
       { status: 400 },
     );
+  if (user.role === "MANAGER" && parsed.data.role !== "EMPLOYEE")
+    return NextResponse.json({ error: "Manager können nur Mitarbeiter einladen." }, { status: 403 });
   if (parsed.data.locationId) {
     const location = await prisma.location.findFirst({
       where: {

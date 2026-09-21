@@ -63,7 +63,7 @@ export default function ManageShiftScreen() {
           <Field label="Unbezahlte Pause (Min.)" value={breakMinutes} onChangeText={setBreakMinutes} keyboardType="number-pad" />
         </View>
         <Text style={styles.section}>ZUWEISUNG</Text>
-        <Choice label="Mitarbeiter" items={[{ id: "", name: "OpenShift" }, ...management.employees]} value={employeeId ?? ""} onChange={(value) => setEmployeeId(value || null)} />
+        <Choice label="Mitarbeiter" items={[{ id: "", name: "OpenShift" }, ...management.employees.filter((item) => item.isActive)]} value={employeeId ?? ""} onChange={(value) => setEmployeeId(value || null)} />
         <Choice label="Standort" items={management.locations} value={locationId} onChange={setLocationId} />
         <Choice label="Position" items={management.positions} value={positionId} onChange={setPositionId} />
         <Choice label="Aufgabenliste" items={[{ id: "", name: "Keine" }, ...management.taskLists]} value={taskListId} onChange={setTaskListId} />

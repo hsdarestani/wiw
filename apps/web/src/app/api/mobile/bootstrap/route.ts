@@ -93,7 +93,7 @@ export async function GET(request: Request) {
     prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 100 }),
     new Set(["OWNER", "ADMIN", "MANAGER"]).has(user.role)
       ? Promise.all([
-          prisma.user.findMany({ where: { organizationId: user.organizationId, isActive: true }, orderBy: [{ firstName: "asc" }, { lastName: "asc" }] }),
+          prisma.user.findMany({ where: { organizationId: user.organizationId }, orderBy: [{ firstName: "asc" }, { lastName: "asc" }] }),
           prisma.location.findMany({ where: { organizationId: user.organizationId }, orderBy: { name: "asc" } }),
           prisma.position.findMany({ where: { organizationId: user.organizationId }, orderBy: { name: "asc" } }),
           prisma.taskList.findMany({ where: { organizationId: user.organizationId }, include: { _count: { select: { items: true } } }, orderBy: { name: "asc" } }),
@@ -172,7 +172,7 @@ export async function GET(request: Request) {
     directory: directory.map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}`.trim() })),
     management: management
       ? {
-          employees: management[0].map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}` })),
+          employees: management[0].map((item) => ({ id: item.id, name: `${item.firstName} ${item.lastName}`.trim(), email: item.email, role: item.role, hourlyRate: Number(item.hourlyRate), isActive: item.isActive })),
           locations: management[1].map((item) => ({ id: item.id, name: item.name })),
           positions: management[2].map((item) => ({ id: item.id, name: item.name, color: item.color })),
           taskLists: management[3].map((item) => ({ id: item.id, name: item.name, itemCount: item._count.items })),
