@@ -134,6 +134,8 @@ export const createConversation = (participantIds: string[], name?: string) => c
 export const sendConversationMessage = (conversationId: string, content: string) => call(`/api/mobile/conversations/${conversationId}/messages`, { method: "POST", body: JSON.stringify({ content }) });
 export const markConversationRead = (conversationId: string) => call(`/api/mobile/conversations/${conversationId}/messages`, { method: "PATCH" });
 export const markNotificationRead = (id?: string) => call("/api/mobile/notifications", { method: "PATCH", body: JSON.stringify(id ? { id } : { all: true }) });
+export const registerPushDevice = (token: string, platform: "ios" | "android") => call("/api/mobile/push-device", { method: "POST", body: JSON.stringify({ token, platform }) });
+export const removePushDevice = (token: string) => call("/api/mobile/push-device", { method: "DELETE", body: JSON.stringify({ token }) });
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export const createManagedShift = (body: {
   assigneeId: string | null;
