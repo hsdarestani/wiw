@@ -138,6 +138,9 @@ export const registerPushDevice = (token: string, platform: "ios" | "android") =
 export const removePushDevice = (token: string) => call("/api/mobile/push-device", { method: "DELETE", body: JSON.stringify({ token }) });
 export const updateEmployee = (id: string, role: string, hourlyRate: number, isActive: boolean) => call(`/api/mobile/employees/${id}`, { method: "PATCH", body: JSON.stringify({ role, hourlyRate, isActive }) });
 export const inviteEmployee = (email: string, role: string) => call<{ invitation: { code: string; expiresAt: string } }>("/api/mobile/invitations", { method: "POST", body: JSON.stringify({ email, role }) });
+export type ManagedTimesheet = { id: string; userId: string; employee: string; clockIn: string; clockOut: string; breakMinutes: number; source: string; approvalStatus: string; correctionNote: string | null; correctionRequestedAt: string | null; reviewedAt: string | null };
+export const getManagedTimesheets = () => call<{ entries: ManagedTimesheet[] }>("/api/mobile/manage/timesheets");
+export const reviewManagedTimesheet = (id: string, status: "APPROVED" | "DECLINED") => call(`/api/mobile/manage/timesheets/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export const createManagedShift = (body: {
   assigneeId: string | null;

@@ -12,6 +12,7 @@ export default function RootLayout() {
       if (data.type === "MESSAGE") router.push("/(tabs)/inbox");
       else if (data.href === "/schedule") router.push("/(tabs)/schedule");
       else if (data.href === "/time-off") router.push("/(tabs)/requests");
+      else if (data.href === "/time-clock") router.push("/(tabs)/clock");
       else router.push("/(tabs)/notifications");
     });
     return () => subscription.remove();
