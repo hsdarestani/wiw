@@ -2,22 +2,31 @@
   "expo": {
     "name": "SchichtPro",
     "slug": "schichtpro",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "schichtpro",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F6F7"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "sbs.smarbiz.schichtpro",
+      "buildNumber": "1",
       "infoPlist": { "NSLocationWhenInUseUsageDescription": "SchichtPro verwendet deinen Standort beim Einstempeln, um den Arbeitsort zu bestätigen." }
     },
     "android": {
       "package": "sbs.smarbiz.schichtpro",
-      "adaptiveIcon": { "backgroundColor": "#F4F6F8" }
+      "versionCode": 1,
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#F5F6F7" }
     },
     "plugins": ["expo-router", "expo-notifications", ["expo-location", { "locationWhenInUsePermission": "SchichtPro verwendet deinen Standort beim Einstempeln, um den Arbeitsort zu bestätigen." }]],
     "extra": {
-      "apiUrl": "https://schichtpro.smarbiz.sbs"
+      "apiUrl": "https://schichtpro.smarbiz.sbs",
+      "easProjectId": ""
     }
   }
 }
