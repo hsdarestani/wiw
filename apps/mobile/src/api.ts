@@ -141,6 +141,8 @@ export const inviteEmployee = (email: string, role: string) => call<{ invitation
 export type ManagedTimesheet = { id: string; userId: string; employee: string; clockIn: string; clockOut: string; breakMinutes: number; source: string; approvalStatus: string; correctionNote: string | null; correctionRequestedAt: string | null; reviewedAt: string | null };
 export const getManagedTimesheets = () => call<{ entries: ManagedTimesheet[] }>("/api/mobile/manage/timesheets");
 export const reviewManagedTimesheet = (id: string, status: "APPROVED" | "DECLINED") => call(`/api/mobile/manage/timesheets/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+export type PayrollReport = { from: string; to: string; status: string; totalHours: number; totalPayroll: number; entryCount: number; people: Array<{ id: string; name: string; rate: number; minutes: number; entries: number; hours: number; payroll: number }>; filename: string; csv: string };
+export const getPayrollReport = (from: string, to: string, status: string) => call<PayrollReport>(`/api/mobile/reports/payroll?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&status=${encodeURIComponent(status)}`);
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export const createManagedShift = (body: {
   assigneeId: string | null;

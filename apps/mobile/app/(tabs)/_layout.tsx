@@ -53,6 +53,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="shift-tasks" options={{ href: null }} />
       <Tabs.Screen name="team" options={{ href: null }} />
       <Tabs.Screen name="timesheets" options={{ href: null }} />
+      <Tabs.Screen name="reports" options={{ href: null }} />
       <Tabs.Screen
         name="more"
         options={{
