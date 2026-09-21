@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 type Member = { id: string; name: string; email: string; role: string; hourlyRate: number; isActive: boolean };
-const labels: Record<string, string> = { OWNER: "Inhaber", ADMIN: "Administrator", MANAGER: "Manager", EMPLOYEE: "Mitarbeiter" };
 export function EmployeeManager({ members, canManage, currentUserId }: { members: Member[]; canManage: boolean; currentUserId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState("");
