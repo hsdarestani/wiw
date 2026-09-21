@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendPush } from "@/lib/push";
 
 const schema = z.object({
   startsOn: z.string().date(),
@@ -54,5 +55,6 @@ export async function POST(request: Request) {
     if (managers.length) await tx.notification.createMany({ data: managers.map((manager) => ({ organizationId: user.organizationId, userId: manager.id, type: "TIME_OFF", title: "Neue Abwesenheitsanfrage", body: `${user.firstName} ${user.lastName} hat eine Anfrage eingereicht.`, href: "/time-off" })) });
     return created;
   });
+  await sendPush(managers.map((manager) => manager.id), "Neue Abwesenheitsanfrage", `${user.firstName} ${user.lastName} hat eine Anfrage eingereicht.`, { type: "TIME_OFF", href: "/time-off" });
   return NextResponse.json({ request: item }, { status: 201 });
 }

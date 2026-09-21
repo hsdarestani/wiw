@@ -15,7 +15,7 @@
       "package": "sbs.smarbiz.schichtpro",
       "adaptiveIcon": { "backgroundColor": "#F4F6F8" }
     },
-    "plugins": ["expo-router", ["expo-location", { "locationWhenInUsePermission": "SchichtPro verwendet deinen Standort beim Einstempeln, um den Arbeitsort zu bestätigen." }]],
+    "plugins": ["expo-router", "expo-notifications", ["expo-location", { "locationWhenInUsePermission": "SchichtPro verwendet deinen Standort beim Einstempeln, um den Arbeitsort zu bestätigen." }]],
     "extra": {
       "apiUrl": "https://schichtpro.smarbiz.sbs"
     }

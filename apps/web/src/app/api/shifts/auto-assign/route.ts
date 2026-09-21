@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendPush } from "@/lib/push";
 
 const schema = z.object({ startsAt: z.string().datetime(), endsAt: z.string().datetime() });
 type Window = { startsAt: Date; endsAt: Date };
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
       if (assignments.length) await tx.notification.createMany({ data: assignments.map((item) => ({ organizationId: actor.organizationId, userId: item.userId, type: "SHIFT_ASSIGNED", title: "Neue Schicht zugewiesen", body: "Eine offene Schicht wurde dir automatisch zugewiesen.", href: "/schedule" })) });
       return { assigned: assignments.length, skipped: openShifts.length - assignments.length, assignments };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    await sendPush([...new Set(result.assignments.map((item) => item.userId))], "Neue Schicht zugewiesen", "Eine offene Schicht wurde dir automatisch zugewiesen.", { type: "SHIFT_ASSIGNED", href: "/schedule" });
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.message === "schedule_changed") return NextResponse.json({ error: "Der Dienstplan wurde parallel geändert. Bitte erneut versuchen." }, { status: 409 });

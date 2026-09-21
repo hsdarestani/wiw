@@ -89,10 +89,24 @@ model User {
   createdConversations     Conversation[]            @relation("ConversationCreator")
   conversationParticipants ConversationParticipant[]
   conversationMessages     ConversationMessage[]
+  pushDevices              PushDevice[]
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
 
   @@index([organizationId, isActive])
+}
+
+model PushDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, enabled])
 }
 
 model Location {

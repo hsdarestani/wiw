@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Bootstrap, bootstrap, hasSession, login, logout } from "./api";
+import { registerForPush, unregisterPush } from "./push";
 
 type SessionValue = {
   data: Bootstrap | null;
@@ -14,7 +15,10 @@ const SessionContext = createContext<SessionValue | null>(null);
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<Bootstrap | null>(null);
   const [loading, setLoading] = useState(true);
-  const refresh = async () => setData(await bootstrap());
+  const refresh = useCallback(async () => {
+    setData(await bootstrap());
+    registerForPush().catch(() => null);
+  }, []);
   useEffect(() => {
     hasSession()
       .then((exists) => (exists ? refresh() : undefined))
@@ -33,6 +37,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           await refresh();
         },
         signOut: async () => {
+          await unregisterPush();
           await logout();
           setData(null);
         },
