@@ -60,7 +60,7 @@ export type Bootstrap = {
     available: boolean;
   }>;
   notifications: Array<{ id: string; type: string; title: string; body: string; href: string | null; readAt: string | null; createdAt: string }>;
-  conversations: Array<{ id: string; title: string; isGroup: boolean; unread: number; messages: Array<{ id: string; content: string; createdAt: string; authorId: string; authorName: string }> }>;
+  conversations: Array<{ id: string; title: string; isGroup: boolean; unread: number; messages: Array<{ id: string; content: string; createdAt: string; authorId: string; authorName: string; readCount: number; recipientCount: number }> }>;
   directory: Array<{ id: string; name: string }>;
   management: null | {
     employees: Array<{ id: string; name: string }>;
