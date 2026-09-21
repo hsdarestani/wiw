@@ -27,7 +27,9 @@ export async function registerForPush() {
   let permission = await Notifications.getPermissionsAsync();
   if (permission.status !== "granted") permission = await Notifications.requestPermissionsAsync();
   if (permission.status !== "granted") return;
-  const projectId = Constants.easConfig?.projectId ?? Constants.expoConfig?.extra?.easProjectId;
+  const projectId = Constants.easConfig?.projectId
+    ?? Constants.expoConfig?.extra?.eas?.projectId
+    ?? Constants.expoConfig?.extra?.easProjectId;
   if (!projectId) return;
   const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
   await registerPushDevice(token, Platform.OS);
