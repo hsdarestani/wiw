@@ -63,7 +63,7 @@ export type Bootstrap = {
   conversations: Array<{ id: string; title: string; isGroup: boolean; unread: number; messages: Array<{ id: string; content: string; createdAt: string; authorId: string; authorName: string; readCount: number; recipientCount: number }> }>;
   directory: Array<{ id: string; name: string }>;
   management: null | {
-    employees: Array<{ id: string; name: string }>;
+    employees: Array<{ id: string; name: string; email: string; role: string; hourlyRate: number; isActive: boolean }>;
     locations: Array<{ id: string; name: string }>;
     positions: Array<{ id: string; name: string; color: string }>;
     taskLists: Array<{ id: string; name: string; itemCount: number }>;
@@ -136,6 +136,8 @@ export const markConversationRead = (conversationId: string) => call(`/api/mobil
 export const markNotificationRead = (id?: string) => call("/api/mobile/notifications", { method: "PATCH", body: JSON.stringify(id ? { id } : { all: true }) });
 export const registerPushDevice = (token: string, platform: "ios" | "android") => call("/api/mobile/push-device", { method: "POST", body: JSON.stringify({ token, platform }) });
 export const removePushDevice = (token: string) => call("/api/mobile/push-device", { method: "DELETE", body: JSON.stringify({ token }) });
+export const updateEmployee = (id: string, role: string, hourlyRate: number, isActive: boolean) => call(`/api/mobile/employees/${id}`, { method: "PATCH", body: JSON.stringify({ role, hourlyRate, isActive }) });
+export const inviteEmployee = (email: string, role: string) => call<{ invitation: { code: string; expiresAt: string } }>("/api/mobile/invitations", { method: "POST", body: JSON.stringify({ email, role }) });
 export const changePassword = (currentPassword: string, newPassword: string) => call("/api/mobile/password", { method: "PATCH", body: JSON.stringify({ currentPassword, newPassword }) });
 export const createManagedShift = (body: {
   assigneeId: string | null;
