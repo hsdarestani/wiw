@@ -479,6 +479,7 @@ button {
 .conversation-item strong, .conversation-item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .conversation-item small { margin-top: 5px; color: var(--muted); font-size: 11px; }
 .conversation-item b { min-width: 20px; height: 20px; border-radius: 10px; background: var(--teal); color: white; display: grid; place-items: center; font-size: 10px; }
+.message-receipt { display: block; color: var(--muted); font-size: 10px; text-align: right; margin-top: 5px; }
 .conversation-main { min-width: 0; display: flex; flex-direction: column; }
 .conversation-main .message-list { flex: 1; overflow-y: auto; }
 .conversation-create { width: min(480px, calc(100vw - 32px)); }
