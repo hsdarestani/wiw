@@ -13,7 +13,8 @@ cd apps/mobile
 npx expo prebuild --platform ios --clean --no-install
 cd ios
 pod install
-xcodebuild -workspace SchichtPro.xcworkspace -scheme SchichtPro -configuration Release -archivePath build/SchichtPro.xcarchive archive MARKETING_VERSION="${APP_VERSION_NAME:-1.0.0}" CURRENT_PROJECT_VERSION="${APP_BUILD_NUMBER:-1}"
+: "${IOS_TEAM_ID:?Publisher must provide IOS_TEAM_ID}"
+xcodebuild -workspace SchichtPro.xcworkspace -scheme SchichtPro -configuration Release -archivePath build/SchichtPro.xcarchive archive CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM="$IOS_TEAM_ID" PRODUCT_BUNDLE_IDENTIFIER="sbs.smarbiz.schichtpro" MARKETING_VERSION="${APP_VERSION_NAME:-1.0.0}" CURRENT_PROJECT_VERSION="${APP_BUILD_NUMBER:-1}"
 xcodebuild -exportArchive -archivePath build/SchichtPro.xcarchive -exportPath build/export -exportOptionsPlist "$IOS_EXPORT_OPTIONS_PLIST"
 mkdir -p ../artifacts
 cp build/export/*.ipa ../artifacts/schichtpro.ipa
