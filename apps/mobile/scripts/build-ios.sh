@@ -13,10 +13,15 @@ cd apps/mobile
 npx expo prebuild --platform ios --clean --no-install
 cd ios
 pod install
+FMT_BASE="Pods/fmt/include/fmt/base.h"
+FMT_BASE_TMP="${FMT_BASE}.tmp"
+printf '%s\n' '#ifndef FMT_USE_CONSTEVAL' '#define FMT_USE_CONSTEVAL 0' '#endif' > "$FMT_BASE_TMP"
+cat "$FMT_BASE" >> "$FMT_BASE_TMP"
+mv "$FMT_BASE_TMP" "$FMT_BASE"
 : "${IOS_TEAM_ID:?Publisher must provide IOS_TEAM_ID}"
 : "${IOS_PROVISIONING_PROFILE_SPECIFIER:?Publisher must provide the provisioning profile}"
 : "${IOS_SIGNING_KEYCHAIN:?Publisher must provide the signing keychain}"
-xcodebuild -workspace SchichtPro.xcworkspace -scheme SchichtPro -configuration Release -archivePath build/SchichtPro.xcarchive archive CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$IOS_TEAM_ID" CODE_SIGN_IDENTITY="${IOS_CODE_SIGN_IDENTITY:-Apple Distribution}" PROVISIONING_PROFILE_SPECIFIER="$IOS_PROVISIONING_PROFILE_SPECIFIER" PRODUCT_BUNDLE_IDENTIFIER="${IOS_BUNDLE_ID:-sbs.smarbiz.schichtpro}" OTHER_CODE_SIGN_FLAGS="--keychain $IOS_SIGNING_KEYCHAIN" MARKETING_VERSION="${APP_VERSION_NAME:-1.0.0}" CURRENT_PROJECT_VERSION="${APP_BUILD_NUMBER:-1}" OTHER_CPLUSPLUSFLAGS="$(inherited) -DFMT_USE_CONSTEVAL=0"
+xcodebuild -workspace SchichtPro.xcworkspace -scheme SchichtPro -configuration Release -archivePath build/SchichtPro.xcarchive archive CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$IOS_TEAM_ID" CODE_SIGN_IDENTITY="${IOS_CODE_SIGN_IDENTITY:-Apple Distribution}" PROVISIONING_PROFILE_SPECIFIER="$IOS_PROVISIONING_PROFILE_SPECIFIER" PRODUCT_BUNDLE_IDENTIFIER="${IOS_BUNDLE_ID:-sbs.smarbiz.schichtpro}" OTHER_CODE_SIGN_FLAGS="--keychain $IOS_SIGNING_KEYCHAIN" MARKETING_VERSION="${APP_VERSION_NAME:-1.0.0}" CURRENT_PROJECT_VERSION="${APP_BUILD_NUMBER:-1}"
 EXPORT_OPTIONS="${IOS_EXPORT_OPTIONS_PLIST:-build/ExportOptions.plist}"
 if [[ -z "${IOS_EXPORT_OPTIONS_PLIST:-}" ]]; then
   cat > "$EXPORT_OPTIONS" <<PLIST
