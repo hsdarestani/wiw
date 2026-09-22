@@ -15,6 +15,6 @@ if grep -q 'expo\.core\.ExpoModulesPackage' "$PACKAGE_LIST"; then
   sed -i 's/expo\.core\.ExpoModulesPackage/expo.modules.ExpoModulesPackage/g' "$PACKAGE_LIST"
 fi
 grep -q 'expo\.modules\.ExpoModulesPackage' "$PACKAGE_LIST"
-./gradlew bundleRelease
+./gradlew bundleRelease -x generateAutolinkingPackageList
 mkdir -p ../artifacts
 cp app/build/outputs/bundle/release/app-release.aab ../artifacts/schichtpro-release.aab
