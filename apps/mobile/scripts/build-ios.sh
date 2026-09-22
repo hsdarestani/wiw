@@ -12,7 +12,8 @@ pnpm install --frozen-lockfile
 cd apps/mobile
 npx expo prebuild --platform ios --clean --no-install
 cd ios
-pod install
+sudo gem install cocoapods -v 1.16.2 --no-document
+pod _1.16.2_ install
 ruby - <<'RUBY'
 require 'xcodeproj'
 project = Xcodeproj::Project.open('Pods/Pods.xcodeproj')
